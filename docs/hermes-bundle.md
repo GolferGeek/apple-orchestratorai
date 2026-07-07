@@ -29,7 +29,29 @@ The app may upgrade Hermes, but must preserve user-owned state:
 
 ## Install Shape
 
-Potential local paths:
+During development, this repository is the project root that owns the Hermes bootstrap process. Hermes itself should be installed under an ignored local runtime folder:
+
+```text
+/Users/golfergeek/projects/golfergeek/apple-orchestratorai/
+  .runtime/
+    hermes-agent/
+    logs/
+    state/
+```
+
+`.runtime/` is development/runtime state, not source. It should contain cloned Hermes files, virtual environments, local logs, generated state, credentials, and other machine-specific artifacts. It must stay out of git.
+
+The repository should contain the reproducible pieces:
+
+- bootstrap scripts
+- configuration templates
+- workflow JSON files
+- schemas
+- Apple app source
+- documentation and intention files
+- tests
+
+The eventual packaged Mac app should use an Apple application-support layout:
 
 ```text
 ~/Library/Application Support/AppleOrchestratorAI/
