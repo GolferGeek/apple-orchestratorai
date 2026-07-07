@@ -34,8 +34,7 @@ swift build
 From the repository root:
 
 ```bash
-cd mac-app/AppleOrchestratorAI
-swift run AppleOrchestratorAI
+scripts/run-mac-app.sh
 ```
 
 The app locates the repository by walking upward until it finds `config/apps.json`.

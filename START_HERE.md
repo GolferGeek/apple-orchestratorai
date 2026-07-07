@@ -52,6 +52,12 @@ The first useful prototype should prove:
 9. The Mac app can route requests to the right Hermes profile.
 10. The Mac app can render the first schema-driven profile surface for coder efforts.
 
+Run the current Mac app shell with:
+
+```bash
+scripts/run-mac-app.sh
+```
+
 ## Non-Goals for the First Build
 
 - No cloud model path.
