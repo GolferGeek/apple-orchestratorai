@@ -49,9 +49,11 @@
 
 ## Phase 5 — Mac App Shell
 
+- Build the SwiftUI app shell.
 - Start/stop/discover Hermes locally.
 - Start/discover Pi locally for admin/developer workbench use.
 - Select or route to the correct Hermes profile.
+- Render the coder profile surface from `profile.coder.efforts.v0`.
 - List available workflows.
 - Run one workflow through Hermes.
 - Render generic blocks.

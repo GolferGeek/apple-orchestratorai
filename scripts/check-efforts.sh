@@ -7,6 +7,9 @@ cd "$repo_root"
 python3 -m json.tool config/apps.json >/dev/null
 python3 -m json.tool templates/effort/effort.json >/dev/null
 python3 -m json.tool templates/effort/questions.json >/dev/null
+python3 -m json.tool schemas/profile-surfaces/coder/efforts.v0.schema.json >/dev/null
+python3 -m json.tool schemas/profile-surfaces/coder/questions.v0.schema.json >/dev/null
+python3 -m json.tool schemas/profile-surfaces/coder/results.v0.schema.json >/dev/null
 
 required_dirs=(inbox current future archive)
 required_files=(
@@ -58,5 +61,7 @@ while IFS=$'\t' read -r app_id root; do
     done < <(find "$root/$state" -mindepth 1 -maxdepth 1 -type d -print0)
   done
 done <<< "$app_roots"
+
+scripts/render-coder-efforts-surface.py --app-id apple-orchestratorai | python3 -m json.tool >/dev/null
 
 echo "effort structure ok"

@@ -5,3 +5,5 @@ config/hermes-profiles.local/
 !.env.example
 *.log
 .DS_Store
+.build/
+mac-app/**/.build/

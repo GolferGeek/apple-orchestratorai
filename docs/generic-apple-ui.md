@@ -45,6 +45,14 @@ The first implementation target should be the `coder` profile surface because th
 
 Profile surface payloads should be data, not UI code. SwiftUI should render known view schemas and block types. If a future profile needs a new recurring shape, add a new schema and renderer deliberately.
 
+The first Mac app shell includes three top-level surfaces:
+
+- `Coder Efforts`
+- `Hermes`
+- `Pi`
+
+`Coder Efforts` is the first schema-driven profile surface. `Hermes` and `Pi` are runtime/admin front ends that begin as health and probe views.
+
 ## Workflow Catalog and Explanation
 
 The app should let the local agent list all available workflows and explain them in user terms. The UI should not show a workflow as a raw JSON file by default, and it should not feel like a Hermes terminal.

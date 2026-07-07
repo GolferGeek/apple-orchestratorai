@@ -45,3 +45,21 @@ No workflow JSON file should be considered runnable until it validates.
 No Hermes display response should be rendered as trusted UI until it validates or passes a tolerant decoder.
 
 Unknown view blocks may be ignored or rendered as unsupported; they should not crash the app.
+
+## First Profile Surface Schemas
+
+The first committed profile-surface schemas are:
+
+```text
+schemas/profile-surfaces/coder/efforts.v0.schema.json
+schemas/profile-surfaces/coder/questions.v0.schema.json
+schemas/profile-surfaces/coder/results.v0.schema.json
+```
+
+The first renderer is:
+
+```text
+scripts/render-coder-efforts-surface.py
+```
+
+The SwiftUI app should consume rendered surface payloads rather than parse every raw effort file directly.
