@@ -14,6 +14,7 @@ It should provide generic views:
 - Runtime diagnostics
 - settings/models
 - Admin/developer workbench
+- profile surfaces
 
 And generic renderers:
 
@@ -26,6 +27,23 @@ And generic renderers:
 - action bar
 
 The UI renders Hermes display JSON and local observability state.
+
+## Profile Surfaces
+
+The app may have profile-level surfaces, but they should be schema-driven SwiftUI views rather than workflow-specific custom screens.
+
+This is different from custom workflow UI. A workflow still returns generic outputs such as Markdown, tables, artifact bundles, decisions, timelines, and logs. A profile surface shows recurring state owned by a profile.
+
+Examples:
+
+- `coder`: efforts, inbox, current/future/archive, blocking questions, turn owner, run result, artifacts.
+- `book-writer`: chapters, sections, characters, manuscript status.
+- `ai-scout`: model cards, watchlist, comparison tables, tool evaluations.
+- `company-growth`: experiments, opportunities, decisions, operating cadence.
+
+The first implementation target should be the `coder` profile surface because the effort system already has a concrete schema and file layout.
+
+Profile surface payloads should be data, not UI code. SwiftUI should render known view schemas and block types. If a future profile needs a new recurring shape, add a new schema and renderer deliberately.
 
 ## Workflow Catalog and Explanation
 

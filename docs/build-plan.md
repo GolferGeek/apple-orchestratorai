@@ -24,6 +24,7 @@
 
 - Define workflow JSON schema.
 - Define app effort folder contract and effort metadata schema.
+- Define profile surface schemas, starting with the coder effort dashboard.
 - Define Apple display/action/event JSON schemas.
 - Define Hermes profile routing and profile manifest schemas.
 - Add a thin Hermes runtime adapter that wraps health, capabilities, runs, run events, approvals, stop, and session chat.

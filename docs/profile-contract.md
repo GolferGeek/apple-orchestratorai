@@ -82,6 +82,28 @@ Semantic versioning is allowed for compatibility tracking, but the user does not
     "memoryScope": "coder",
     "workspaceScope": "coder"
   },
+  "profileSurface": {
+    "enabled": true,
+    "renderer": "schema-driven-swiftui",
+    "defaultView": "efforts",
+    "views": [
+      {
+        "id": "efforts",
+        "label": "Efforts",
+        "schema": "profile.coder.efforts.v0"
+      },
+      {
+        "id": "questions",
+        "label": "Questions",
+        "schema": "profile.coder.questions.v0"
+      },
+      {
+        "id": "results",
+        "label": "Results",
+        "schema": "profile.coder.results.v0"
+      }
+    ]
+  },
   "outputs": [
     { "type": "markdown", "label": "Summary" },
     { "type": "json", "label": "Structured Result" },
@@ -132,3 +154,20 @@ V1 uses Apple persistence:
 - No MySQL or Supabase in the base product.
 
 Mac Studio remains the runtime authority even when Apple sync is used.
+
+## Profile Surfaces
+
+Workflow results stay generic. The app should not add custom screens for each workflow.
+
+Profiles may declare profile-level surfaces when a domain needs a durable way to inspect its own working state. These are schema-driven SwiftUI views, not arbitrary HTML snippets and not per-workflow UI.
+
+Examples:
+
+- `coder`: effort inbox, current/future/archive efforts, blocking questions, turn ownership, run results, shared notes, artifacts.
+- `book-writer`: chapters, sections, characters, manuscript status, research notes.
+- `ai-scout`: model watchlist, model cards, tool evaluations, comparison tables.
+- `company-growth`: experiments, opportunities, positioning notes, operating cadence.
+
+Profile surfaces are appropriate when the profile owns a recurring information shape. Workflow outputs still use the generic display/output contract.
+
+For v1, the first profile surface should be `coder`, because this repository now has a concrete effort file system and explicit turn ownership.

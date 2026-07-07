@@ -210,6 +210,22 @@ When answered, the app writes the answer back into the same question record or a
 
 Use `next-actions.md` for immediate next steps. Use `later.md` for deferred ideas so they do not pollute the active plan.
 
+## Coder Profile Surface
+
+The coder profile surface should render this effort system directly in SwiftUI:
+
+- inbox intentions
+- current efforts
+- future efforts
+- archived efforts
+- turn owner and turn state
+- blocking questions
+- latest result summaries
+- shared notes and next actions
+- artifact lists
+
+This is the first profile-level UI surface. It is not a custom screen for an individual workflow; it is the reusable dashboard for the `coder` profile's recurring work shape.
+
 ## Scripts
 
 Initialize a local app effort folder:

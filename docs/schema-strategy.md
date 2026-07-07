@@ -9,6 +9,7 @@ The project should define schemas for:
 - workflow JSON
 - workflow pack manifest
 - profile manifest
+- profile surface
 - app effort metadata
 - app effort questions
 - app registry
