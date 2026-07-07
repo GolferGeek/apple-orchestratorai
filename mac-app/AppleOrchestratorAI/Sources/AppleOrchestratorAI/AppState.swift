@@ -1,14 +1,23 @@
 import Foundation
+import AVFoundation
 import Observation
 
 @Observable
 @MainActor
 final class AppState {
     var repoRoot: URL?
+    var selectedSection: AppSection = .voice
     var surface: CoderEffortsSurface?
     var statusMessage = "Ready"
     var hermesOutput = ""
     var piOutput = ""
+    var voiceCommand = ""
+    var voicePrompt = "Tell me what you want to do. Try: show coder efforts, check Hermes, check Pi, reload efforts, or help."
+    var voiceLines: [String] = [
+        "App: Tell me what you want to do."
+    ]
+
+    private let speechSynthesizer = AVSpeechSynthesizer()
 
     init() {
         repoRoot = RepositoryLocator.findRepoRoot()
@@ -56,6 +65,76 @@ final class AppState {
         runProbe(script: "scripts/probe-pi.sh", target: .pi)
     }
 
+    func submitVoiceCommand() {
+        let command = voiceCommand.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !command.isEmpty else {
+            speak("Tell me what you want to do.")
+            return
+        }
+
+        voiceLines.append("You: \(command)")
+        voiceCommand = ""
+        handleVoiceCommand(command)
+    }
+
+    func speakPrompt() {
+        speak(voicePrompt)
+    }
+
+    func runQuickCommand(_ command: String) {
+        voiceCommand = command
+        submitVoiceCommand()
+    }
+
+    private func handleVoiceCommand(_ command: String) {
+        let normalized = command.lowercased()
+
+        if normalized.contains("help") {
+            respond("You can say show coder efforts, check Hermes, check Pi, reload efforts, or go home.")
+        } else if normalized.contains("coder") || normalized.contains("effort") || normalized.contains("inbox") {
+            selectedSection = .coderEfforts
+            reloadEfforts()
+            respond("Opening Coder Efforts.")
+        } else if normalized.contains("check hermes") || normalized.contains("probe hermes") {
+            selectedSection = .hermes
+            checkHermes()
+            respond("Checking Hermes.")
+        } else if normalized.contains("hermes") {
+            selectedSection = .hermes
+            respond("Opening Hermes.")
+        } else if normalized.contains("check pi") || normalized.contains("probe pi") {
+            selectedSection = .pi
+            checkPi()
+            respond("Checking Pi.")
+        } else if normalized == "pi" || normalized.contains("open pi") || normalized.contains("show pi") {
+            selectedSection = .pi
+            respond("Opening Pi.")
+        } else if normalized.contains("reload") || normalized.contains("refresh") {
+            reloadEfforts()
+            respond("Reloaded coder efforts.")
+        } else if normalized.contains("home") || normalized.contains("voice") {
+            selectedSection = .voice
+            respond("Back to voice.")
+        } else {
+            respond("I did not recognize that command yet. Try show coder efforts, check Hermes, or check Pi.")
+        }
+    }
+
+    private func respond(_ text: String) {
+        voiceLines.append("App: \(text)")
+        speak(text)
+    }
+
+    private func speak(_ text: String) {
+        if speechSynthesizer.isSpeaking {
+            speechSynthesizer.stopSpeaking(at: .immediate)
+        }
+
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        speechSynthesizer.speak(utterance)
+    }
+
     private enum ProbeTarget {
         case hermes
         case pi
@@ -87,6 +166,6 @@ final class AppState {
             hermesOutput = output
         case .pi:
             piOutput = output
-            }
+        }
     }
 }

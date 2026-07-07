@@ -51,6 +51,7 @@ The first useful prototype should prove:
 8. The Mac app can expose a small admin/workbench surface for Pi without making Pi part of the normal workflow UI.
 9. The Mac app can route requests to the right Hermes profile.
 10. The Mac app can render the first schema-driven profile surface for coder efforts.
+11. The Mac app can answer first-pass Siri/App Intent questions about current efforts and effort status.
 
 Run the current Mac app shell with:
 

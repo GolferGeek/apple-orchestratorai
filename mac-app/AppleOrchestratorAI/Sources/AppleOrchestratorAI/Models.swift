@@ -1,5 +1,40 @@
 import Foundation
 
+enum AppSection: String, CaseIterable, Identifiable {
+    case voice
+    case coderEfforts
+    case hermes
+    case pi
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .voice:
+            "Voice"
+        case .coderEfforts:
+            "Coder Efforts"
+        case .hermes:
+            "Hermes"
+        case .pi:
+            "Pi"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .voice:
+            "mic"
+        case .coderEfforts:
+            "hammer"
+        case .hermes:
+            "bolt.horizontal"
+        case .pi:
+            "terminal"
+        }
+    }
+}
+
 struct CoderEffortsSurface: Decodable {
     let schemaVersion: String
     let profileId: String

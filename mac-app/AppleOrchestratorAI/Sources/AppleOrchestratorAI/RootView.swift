@@ -4,29 +4,27 @@ struct RootView: View {
     @State private var appState = AppState()
 
     var body: some View {
+        @Bindable var appState = appState
+
         NavigationSplitView {
-            List {
-                NavigationLink {
-                    CoderEffortsView()
-                } label: {
-                    Label("Coder Efforts", systemImage: "hammer")
-                }
-
-                NavigationLink {
-                    HermesView()
-                } label: {
-                    Label("Hermes", systemImage: "bolt.horizontal")
-                }
-
-                NavigationLink {
-                    PiView()
-                } label: {
-                    Label("Pi", systemImage: "terminal")
+            List(selection: $appState.selectedSection) {
+                ForEach(AppSection.allCases) { section in
+                    Label(section.title, systemImage: section.symbolName)
+                        .tag(section)
                 }
             }
             .navigationTitle("Apple Orchestrator AI")
         } detail: {
-            CoderEffortsView()
+            switch appState.selectedSection {
+            case .voice:
+                VoiceCommandView()
+            case .coderEfforts:
+                CoderEffortsView()
+            case .hermes:
+                HermesView()
+            case .pi:
+                PiView()
+            }
         }
         .environment(appState)
     }
