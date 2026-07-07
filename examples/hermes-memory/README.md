@@ -24,4 +24,4 @@ Each profile can start with:
 
 Do not copy real client data, credentials, private calendar data, or sensitive personal facts into committed examples.
 
-Included examples cover personal, legal-dev, coder, writer, ai-scout, and golfer-style profiles.
+Included examples cover personal, legal-dev, coder, writer, ai-scout, golfer, and company-growth style profiles.

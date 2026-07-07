@@ -18,6 +18,7 @@ Private local profiles:
 - `post-writer`: short-form posts and essays.
 - `ai-scout`: AI model/tool/framework scouting.
 - `golfer`: golf practice, round planning, course strategy, and improvement tracking.
+- `company-growth`: company strategy, growth experiments, positioning, revenue, partnerships, and operating cadence.
 
 No `legal-demo` profile yet. If a clean demo environment becomes useful later, clone from `legal-dev` after the legal pack stabilizes.
 
@@ -92,12 +93,13 @@ Examples:
 "Turn this into a LinkedIn post"          -> post-writer   local/private
 "Find the best new MLX tool model"        -> ai-scout      local/private
 "Plan tomorrow's range session"           -> golfer        local/private
+"Evaluate this partnership idea"          -> company-growth local/private
 ```
 
 The app should support manual override:
 
 ```text
-Mode: Auto | Personal | Legal Dev | Coder | Book Writer | Post Writer | AI Scout
+Mode: Auto | Personal | Legal Dev | Coder | Book Writer | Post Writer | AI Scout | Golfer | Company Growth
 ```
 
 ## Memory Boundaries
@@ -141,6 +143,20 @@ Codex remains the implementation agent. Hermes `coder` is the coordinator and me
 `personal` is the default personal Apple assistant mode.
 
 It can remember preferences, routines, projects, and lightweight personal context. It should not absorb legal matter facts or repo implementation details unless the user explicitly promotes them.
+
+### Company Growth Profile
+
+`company-growth` is a private business strategy and operating profile.
+
+Responsibilities:
+
+- growth experiments
+- product and market positioning
+- sales and partnership ideas
+- operating cadence and decision logs
+- explicit handoff to `coder` when growth work becomes product implementation
+
+Because this may contain private company context, the manifest and live memory stay under `config/hermes-profiles.local/` or runtime state unless a generic product template is intentionally created.
 
 ## Product Profile: Legal Dev
 
