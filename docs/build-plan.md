@@ -11,6 +11,15 @@
 - Configure a local/provider model for the isolated Hermes home.
 - Start one trivial run through `POST /v1/runs` and verify it reaches `run.completed`.
 
+## Phase 1A — Pi Developer/Admin Harness
+
+- Install Pi under `.runtime/pi`.
+- Keep Pi app/workbench state under `.runtime/pi-home`.
+- Verify the Pi CLI starts.
+- Verify Pi RPC mode starts and responds to `get_state`.
+- Add an app-facing Pi adapter that can spawn RPC mode, send commands, and stream JSONL events.
+- Add a small admin frontend for Pi health, raw events, prompt testing, model state, abort, and new-session controls.
+
 ## Phase 2 — Contract Prototype
 
 - Define workflow JSON schema.
@@ -38,10 +47,12 @@
 ## Phase 5 — Mac App Shell
 
 - Start/stop/discover Hermes locally.
+- Start/discover Pi locally for admin/developer workbench use.
 - List available workflows.
 - Run one workflow through Hermes.
 - Render generic blocks.
 - Provide an agent conversation surface.
+- Provide an advanced Pi workbench surface that is separate from normal workflow execution.
 
 ## Phase 6 — iPhone Controller
 

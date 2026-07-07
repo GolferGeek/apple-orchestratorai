@@ -13,6 +13,7 @@ It should provide generic views:
 - Agent conversation
 - Runtime diagnostics
 - settings/models
+- Admin/developer workbench
 
 And generic renderers:
 
@@ -87,7 +88,7 @@ The Mac app can offer two user-facing modes:
 - **Apple Interface:** Native workflow/run/output UI using generic renderers.
 - **Agent Conversation:** A conversational agent/workbench surface inside the Mac app.
 
-The Agent Conversation is powered by Hermes, but the user does not need to know they are talking to Hermes. They are talking to the app's local agent.
+The Agent Conversation is primarily powered by Hermes, but the user does not need to know they are talking to Hermes. They are talking to the app's local agent.
 
 It should not look like a terminal by default. The normal experience should feel like a structured assistant/workbench:
 
@@ -115,6 +116,34 @@ This is useful for:
 - checking model/tool availability
 
 The user should not need to leave the Mac app for normal runtime interaction. Hermes should remain an implementation detail unless the user opens advanced diagnostics.
+
+## Pi Admin Workbench
+
+The app can also include a small Pi-powered admin/developer workbench.
+
+This is not the normal workflow UI. It is for building, testing, and repairing the system:
+
+- workflow JSON edits
+- skill/prompt experiments
+- local model behavior tests
+- Pi RPC diagnostics
+- raw JSONL event inspection
+- generated patch review
+- controlled runtime-management requests
+
+The first integration should use Pi RPC mode through a child process. Later, if useful, the app can move to a Node/TypeScript sidecar that embeds the Pi SDK.
+
+The workbench should expose clear status:
+
+- Pi installed/build status
+- Pi version
+- selected transport: CLI, RPC, SDK later
+- model/provider state
+- current session id
+- raw event stream
+- controls for prompt, abort, get state, and new session
+
+Pi must stay behind the app trust boundary. The app approves file edits, runtime updates, model pulls, and other privileged operations.
 
 ## Hermes Runtime Discovery
 

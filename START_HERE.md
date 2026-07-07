@@ -8,6 +8,7 @@ The goal is to build a Mac-first local orchestration app on top of Hermes:
 - workflow behavior lives in Hermes skills
 - external systems are reached through MCP tools/connectors
 - Ollama runs local models on the Mac
+- Pi is available as an optional developer/admin harness for building and repairing workflows, skills, prompts, and integrations
 - the local database stores runs, events, human tasks, outputs, and audit state
 - the Apple app renders generic Hermes display responses, not custom UI per workflow
 
@@ -23,13 +24,14 @@ The goal is to build a Mac-first local orchestration app on top of Hermes:
 8. [Authentication and Trust](docs/authentication-and-trust.md)
 9. [Hermes Bundle](docs/hermes-bundle.md)
 10. [Local Models](docs/local-models.md)
-11. [Schema Strategy](docs/schema-strategy.md)
-12. [Legal Workflow Pack](docs/legal-workflow-pack.md)
-13. [Document Onboarding Slice](docs/document-onboarding-slice.md)
-14. [Testing Strategy](docs/testing-strategy.md)
-15. [Build Plan](docs/build-plan.md)
-16. [Iterative Build Method](docs/iterative-build-method.md)
-17. [Open Questions](docs/open-questions.md)
+11. [Pi Runtime](docs/pi-runtime.md)
+12. [Schema Strategy](docs/schema-strategy.md)
+13. [Legal Workflow Pack](docs/legal-workflow-pack.md)
+14. [Document Onboarding Slice](docs/document-onboarding-slice.md)
+15. [Testing Strategy](docs/testing-strategy.md)
+16. [Build Plan](docs/build-plan.md)
+17. [Iterative Build Method](docs/iterative-build-method.md)
+18. [Open Questions](docs/open-questions.md)
 
 ## First Build Target
 
@@ -42,6 +44,7 @@ The first useful prototype should prove:
 5. The app can persist run state in a local observability database.
 6. The app can render active/completed/blocked/human-in-loop runs without custom workflow UI.
 7. One legal workflow can run against a local test matter.
+8. The Mac app can expose a small admin/workbench surface for Pi without making Pi part of the normal workflow UI.
 
 ## Non-Goals for the First Build
 

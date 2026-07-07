@@ -39,7 +39,7 @@ See [docs/architecture.md](docs/architecture.md) for the initial model.
 
 ## Development Bootstrap
 
-This repo owns the local Hermes bootstrap process, but runtime files stay out of git.
+This repo owns the local Hermes, Pi, and Ollama bootstrap process, but runtime files stay out of git.
 
 ```bash
 scripts/bootstrap-hermes.sh
@@ -51,6 +51,14 @@ In another terminal:
 
 ```bash
 scripts/probe-hermes-api.sh
+```
+
+For the optional Pi developer/admin workbench:
+
+```bash
+scripts/bootstrap-pi.sh
+source .runtime/pi-env.sh
+scripts/probe-pi.sh
 ```
 
 For local MLX model setup:
@@ -68,5 +76,8 @@ Development layout:
 .runtime/
   hermes-agent/
   hermes-home/
+  pi/
+  pi-home/
+  ollama/
   venvs/hermes-dev/
 ```
