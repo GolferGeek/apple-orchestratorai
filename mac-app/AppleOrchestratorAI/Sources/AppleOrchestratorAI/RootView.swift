@@ -56,9 +56,32 @@ struct RootView: View {
 
     @ViewBuilder
     private func modalView(_ modal: ModalSurface) -> some View {
-        switch modal {
-        case .coderEfforts:
-            CoderEffortsView()
+        VStack(spacing: 0) {
+            HStack {
+                Label(modal.title, systemImage: modal.symbolName)
+                    .font(.headline)
+
+                Spacer()
+
+                Button {
+                    appState.activeModal = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Close")
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+
+            Divider()
+
+            switch modal {
+            case .coderEfforts:
+                CoderEffortsView()
+            }
         }
     }
 }

@@ -72,6 +72,12 @@ To create the development `.app` wrapper:
 scripts/package-mac-app.sh
 ```
 
+Validate the development `.app` wrapper:
+
+```bash
+scripts/check-mac-app-bundle.sh
+```
+
 ## Run
 
 From the repository root:
