@@ -81,6 +81,8 @@ struct RootView: View {
             switch modal {
             case .coderEfforts:
                 CoderEffortsView()
+            case .personal:
+                PersonalView()
             }
         }
     }

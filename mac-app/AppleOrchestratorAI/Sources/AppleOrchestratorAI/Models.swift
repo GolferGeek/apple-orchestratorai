@@ -32,6 +32,7 @@ enum AppSection: String, CaseIterable, Identifiable {
 
 enum ModalSurface: String, Identifiable {
     case coderEfforts
+    case personal
 
     var id: String { rawValue }
 
@@ -39,6 +40,8 @@ enum ModalSurface: String, Identifiable {
         switch self {
         case .coderEfforts:
             "Coder Efforts"
+        case .personal:
+            "Personal"
         }
     }
 
@@ -46,6 +49,8 @@ enum ModalSurface: String, Identifiable {
         switch self {
         case .coderEfforts:
             "hammer"
+        case .personal:
+            "person.crop.circle"
         }
     }
 }

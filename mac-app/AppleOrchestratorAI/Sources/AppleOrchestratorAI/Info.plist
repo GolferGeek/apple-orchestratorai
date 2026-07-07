@@ -18,5 +18,13 @@
   <string>Apple Orchestrator AI uses the microphone so you can speak commands to the local assistant.</string>
   <key>NSSpeechRecognitionUsageDescription</key>
   <string>Apple Orchestrator AI uses speech recognition to turn your spoken commands into local app actions.</string>
+  <key>NSCalendarsFullAccessUsageDescription</key>
+  <string>Apple Orchestrator AI uses Calendar access to answer scheduling questions and create events you request.</string>
+  <key>NSCalendarsUsageDescription</key>
+  <string>Apple Orchestrator AI uses Calendar access to answer scheduling questions and create events you request.</string>
+  <key>NSRemindersFullAccessUsageDescription</key>
+  <string>Apple Orchestrator AI uses Reminders access to answer reminder questions and create reminders you request.</string>
+  <key>NSRemindersUsageDescription</key>
+  <string>Apple Orchestrator AI uses Reminders access to answer reminder questions and create reminders you request.</string>
 </dict>
 </plist>

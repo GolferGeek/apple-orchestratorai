@@ -100,6 +100,12 @@ struct VoiceCommandView: View {
             }
 
             Button {
+                appState.runQuickCommand("show personal")
+            } label: {
+                Label("Personal", systemImage: "person.crop.circle")
+            }
+
+            Button {
                 appState.runQuickCommand("check Hermes")
             } label: {
                 Label("Hermes", systemImage: "bolt.horizontal")

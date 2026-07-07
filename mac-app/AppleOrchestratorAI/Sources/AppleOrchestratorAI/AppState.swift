@@ -13,6 +13,7 @@ final class AppState {
     var statusMessage = "Ready"
     var hermesOutput = ""
     var piOutput = ""
+    var personalOutput = "Calendar, Reminders, and Day One are ready to connect."
     var voiceCommand = ""
     var voicePrompt = "Tell me what you want to do. Try: show coder efforts, check Hermes, check Pi, reload efforts, or help."
     var voiceLines: [String] = [
@@ -23,6 +24,7 @@ final class AppState {
 
     private let speechSynthesizer = AVSpeechSynthesizer()
     private let speechRecognizer = SpeechCommandRecognizer()
+    private let personalIntegrations = PersonalIntegrations()
 
     init() {
         repoRoot = RepositoryLocator.findRepoRoot()
@@ -121,7 +123,9 @@ final class AppState {
         let normalized = command.lowercased()
 
         if normalized.contains("help") {
-            respond("You can say show coder efforts, check Hermes, check Pi, reload efforts, open writing, open AI scout, reload efforts, or go home.")
+            respond("You can say show coder efforts, show personal, what is on my calendar, what reminders are open, write journal, check Hermes, check Pi, reload efforts, open writing, open AI scout, or go home.")
+        } else if normalized.contains("personal") || normalized.contains("calendar") || normalized.contains("reminder") || normalized.contains("journal") || normalized.contains("day one") {
+            handlePersonalCommand(command, normalized: normalized)
         } else if normalized.contains("coder") || normalized.contains("effort") || normalized.contains("inbox") {
             reloadEfforts()
             openModal(.coderEfforts)
@@ -160,6 +164,69 @@ final class AppState {
             recentModalSurfaces.append(modal)
         }
         activeModal = modal
+    }
+
+    func requestCalendarAccess() {
+        Task {
+            let result = await personalIntegrations.requestCalendarAccess()
+            personalOutput = result
+            respond(result)
+        }
+    }
+
+    func requestReminderAccess() {
+        Task {
+            let result = await personalIntegrations.requestReminderAccess()
+            personalOutput = result
+            respond(result)
+        }
+    }
+
+    func showTodayCalendar() {
+        let result = personalIntegrations.calendarSummaryForToday()
+        personalOutput = result
+        respond(result)
+    }
+
+    func showReminders() {
+        Task {
+            let result = await personalIntegrations.reminderSummary()
+            personalOutput = result
+            respond(result)
+        }
+    }
+
+    func createDayOneEntry(_ text: String) {
+        Task {
+            let result = await personalIntegrations.createDayOneEntry(text)
+            personalOutput = result
+            respond(result)
+        }
+    }
+
+    private func handlePersonalCommand(_ command: String, normalized: String) {
+        openModal(.personal)
+
+        if normalized.contains("calendar") || normalized.contains("schedule") {
+            if normalized.contains("permission") || normalized.contains("access") {
+                requestCalendarAccess()
+            } else {
+                showTodayCalendar()
+            }
+        } else if normalized.contains("reminder") {
+            if normalized.contains("permission") || normalized.contains("access") {
+                requestReminderAccess()
+            } else {
+                showReminders()
+            }
+        } else if normalized.contains("write journal") {
+            let text = command.replacingOccurrences(of: "write journal", with: "", options: [.caseInsensitive])
+            createDayOneEntry(text)
+        } else if normalized.contains("day one") {
+            respond("Opening Personal. Day One journal entries can be created through the Day One CLI when installed.")
+        } else {
+            respond("Opening Personal.")
+        }
     }
 
     private func respond(_ text: String) {

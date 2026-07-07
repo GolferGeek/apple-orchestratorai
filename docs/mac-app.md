@@ -41,10 +41,31 @@ Profile-specific views should open as modal surfaces from voice commands. When d
 The voice surface currently supports dictation-friendly text commands and spoken responses:
 
 - `show coder efforts`
+- `show personal`
+- `what is on my calendar`
+- `what reminders are open`
+- `write journal <entry text>`
 - `check Hermes`
 - `check Pi`
 - `reload efforts`
 - `help`
+
+## Personal Integrations
+
+The first personal modal connects:
+
+- Calendar through EventKit.
+- Reminders through EventKit.
+- Day One through the local `dayone` CLI, with `dayone2` fallback.
+
+The development app bundle includes these privacy keys:
+
+- `NSCalendarsFullAccessUsageDescription`
+- `NSCalendarsUsageDescription`
+- `NSRemindersFullAccessUsageDescription`
+- `NSRemindersUsageDescription`
+
+Day One requires the CLI to be installed from the Day One Mac app. Day One's current official CLI command is `dayone`; older installs may still provide `dayone2`.
 
 Native push-to-talk speech recognition is wired through the `Listen` button. The run script launches a development `.app` wrapper so macOS can read these privacy strings from the app bundle:
 
