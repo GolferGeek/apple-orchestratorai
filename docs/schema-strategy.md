@@ -11,6 +11,7 @@ The project should define schemas for:
 - profile manifest
 - app effort metadata
 - app effort questions
+- app registry
 - Hermes display response
 - Hermes view block
 - Hermes event

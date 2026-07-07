@@ -21,6 +21,20 @@ Directory meanings:
 - `future/`: accepted or useful efforts that are not active now.
 - `archive/`: completed, abandoned, superseded, or historical efforts.
 
+This repository starts with one registered app:
+
+```text
+apps/
+  apple-orchestratorai/
+    efforts/
+      inbox/
+      current/
+      future/
+      archive/
+```
+
+Known apps are listed in `config/apps.json`. External apps, such as Orchestrator AI Enterprise or Orchestrator AI Local, should be registered there with their own app ids and effort roots rather than copied into this repository.
+
 ## Intake Rule
 
 The inbox item is the user's intention. It should not become an active effort automatically.
@@ -107,9 +121,66 @@ The note files may be empty when the effort is created. Creating them every time
   "sourceIntention": "../../inbox/2026-07-07-add-profile-contract.md",
   "createdBy": "coder",
   "createdAt": "2026-07-07T00:00:00Z",
-  "inferenceRoute": "codex-subscription"
+  "inferenceRoute": "codex-subscription",
+  "turn": {
+    "owner": "codex",
+    "state": "ready",
+    "reason": "Effort has been accepted and is ready for Codex planning.",
+    "since": "2026-07-07T00:00:00Z",
+    "questionIds": []
+  }
 }
 ```
+
+## Turn Ownership
+
+The authoritative handoff marker lives in `effort.json`, not prose notes.
+
+Turn owners:
+
+- `user`
+- `hermes`
+- `codex`
+- `pi`
+- `app`
+- `external`
+
+Turn states:
+
+- `needs-input`
+- `ready`
+- `working`
+- `blocked`
+- `review`
+- `done`
+
+Examples:
+
+```json
+{
+  "turn": {
+    "owner": "user",
+    "state": "needs-input",
+    "reason": "Blocking question q1 needs an answer before effort creation.",
+    "since": "2026-07-07T00:00:00Z",
+    "questionIds": ["q1"]
+  }
+}
+```
+
+```json
+{
+  "turn": {
+    "owner": "codex",
+    "state": "review",
+    "reason": "Codex has completed implementation and needs user or Hermes review.",
+    "since": "2026-07-07T00:00:00Z",
+    "questionIds": []
+  }
+}
+```
+
+`next-actions.md` should mirror the turn state in human language, but the app should read `effort.json` as the source of truth.
 
 ## Questions
 
@@ -138,3 +209,17 @@ When answered, the app writes the answer back into the same question record or a
 `shared-notes.md` is the living coordination note for Hermes and Codex. It should capture what is being discussed and what both agents need to remember for this effort.
 
 Use `next-actions.md` for immediate next steps. Use `later.md` for deferred ideas so they do not pollute the active plan.
+
+## Scripts
+
+Initialize a local app effort folder:
+
+```bash
+scripts/init-app-efforts.sh apple-orchestratorai
+```
+
+Validate registered app effort folders and accepted effort templates:
+
+```bash
+scripts/check-efforts.sh
+```
