@@ -1,7 +1,7 @@
 import Foundation
 
-enum EffortIntentReader {
-    static func currentEffortSummary() -> String {
+enum AssistantIntentReader {
+    static func currentCoderEffortSummary() -> String {
         guard let repoRoot = RepositoryLocator.findRepoRoot() else {
             return "I cannot find the Apple Orchestrator AI repository yet."
         }
@@ -13,32 +13,18 @@ enum EffortIntentReader {
         if let first = currentEfforts.first {
             let title = effortTitle(at: first)
             let turn = turnSummary(at: first)
-            return "Your current effort is \(title). \(turn)"
+            return "Your current coding effort is \(title). \(turn)"
         }
 
         let inboxCount = markdownFiles(at: inboxRoot).count
         if inboxCount == 1 {
-            return "You do not have a current effort yet. There is one intention waiting in the inbox."
+            return "You do not have a current coding effort yet. There is one intention waiting in the inbox."
         }
-        return "You do not have a current effort yet. There are \(inboxCount) intentions waiting in the inbox."
+        return "You do not have a current coding effort yet. There are \(inboxCount) intentions waiting in the inbox."
     }
 
-    static func overallStatusSummary() -> String {
-        guard let repoRoot = RepositoryLocator.findRepoRoot() else {
-            return "I cannot find the Apple Orchestrator AI repository yet."
-        }
-
-        let effortsRoot = repoRoot.appending(path: "apps/apple-orchestratorai/efforts")
-        let inbox = markdownFiles(at: effortsRoot.appending(path: "inbox")).count
-        let current = effortDirectories(at: effortsRoot.appending(path: "current")).count
-        let future = effortDirectories(at: effortsRoot.appending(path: "future")).count
-        let archive = effortDirectories(at: effortsRoot.appending(path: "archive")).count
-
-        if current == 0 {
-            return "No efforts are currently running. Inbox: \(inbox). Future: \(future). Archive: \(archive)."
-        }
-
-        return "You have \(current) current effort\(current == 1 ? "" : "s"). Inbox: \(inbox). Future: \(future). Archive: \(archive)."
+    static func profileStatusSummary() -> String {
+        "Apple Assistant is ready with Personal and Coder surfaces. Book Writer, Post Writer, AI Scout, Golfer, and Company Growth are registered as profile surfaces to build next."
     }
 
     private static func effortDirectories(at url: URL) -> [URL] {

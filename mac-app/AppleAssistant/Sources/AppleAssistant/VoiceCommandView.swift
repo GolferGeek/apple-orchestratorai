@@ -66,7 +66,7 @@ struct VoiceCommandView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Voice Command")
                     .font(.largeTitle.weight(.semibold))
-                Text("Use your voice or type a command to build, inspect, or run workflows.")
+                Text("Talk to your personal assistant, or type a command.")
                     .foregroundStyle(.secondary)
             }
 
@@ -94,15 +94,33 @@ struct VoiceCommandView: View {
                 .foregroundStyle(.secondary)
 
             Button {
-                appState.runQuickCommand("check Hermes")
+                appState.runQuickCommand("show personal")
             } label: {
-                Label("Hermes", systemImage: "bolt.horizontal")
+                Label("Personal", systemImage: "person.crop.circle")
             }
 
             Button {
-                appState.runQuickCommand("check Pi")
+                appState.runQuickCommand("show coder")
             } label: {
-                Label("Pi", systemImage: "terminal")
+                Label("Coder", systemImage: "hammer")
+            }
+
+            Button {
+                appState.runQuickCommand("what is on my calendar")
+            } label: {
+                Label("Calendar", systemImage: "calendar")
+            }
+
+            Button {
+                appState.runQuickCommand("show personal")
+            } label: {
+                Label("Personal", systemImage: "person.crop.circle")
+            }
+
+            Button {
+                appState.runQuickCommand("what reminders are open")
+            } label: {
+                Label("Reminders", systemImage: "checklist")
             }
 
             Button {

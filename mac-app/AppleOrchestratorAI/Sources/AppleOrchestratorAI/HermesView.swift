@@ -6,7 +6,7 @@ struct HermesView: View {
     var body: some View {
         RuntimeProbeView(
             title: "Hermes",
-            subtitle: "Local workflow runtime, profile coordinator, event source, and skill host.",
+            subtitle: "Local workflow runtime, event source, and skill host.",
             buttonTitle: "Probe Hermes",
             output: appState.hermesOutput,
             action: appState.checkHermes

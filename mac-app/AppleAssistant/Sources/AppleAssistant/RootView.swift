@@ -7,38 +7,24 @@ struct RootView: View {
         @Bindable var appState = appState
 
         VStack(spacing: 0) {
-            topBar(selection: $appState.selectedSection)
+            topBar
             Divider()
 
-            Group {
-                switch appState.selectedSection {
-                case .voice:
-                    VoiceCommandView()
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            VoiceCommandView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .environment(appState)
         .sheet(item: $appState.activeModal) { modal in
             modalView(modal)
                 .environment(appState)
-                .frame(minWidth: 780, minHeight: 540)
+                .frame(minWidth: 720, minHeight: 520)
         }
     }
 
-    private func topBar(selection: Binding<AppSection>) -> some View {
+    private var topBar: some View {
         HStack(spacing: 14) {
-            Text("Apple Orchestrator AI")
+            Text("Apple Assistant")
                 .font(.headline)
-
-            Picker("Surface", selection: selection) {
-                ForEach(AppSection.allCases) { section in
-                    Label(section.title, systemImage: section.symbolName)
-                        .tag(section)
-                }
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 360)
 
             Spacer()
 
@@ -75,10 +61,12 @@ struct RootView: View {
             Divider()
 
             switch modal {
-            case .hermes:
-                HermesView()
-            case .pi:
-                PiView()
+            case .coder:
+                CoderEffortsView()
+            case .personal:
+                PersonalView()
+            case .bookWriter, .postWriter, .aiScout, .golfer, .companyGrowth:
+                ProfilePlaceholderView(surface: modal)
             }
         }
     }

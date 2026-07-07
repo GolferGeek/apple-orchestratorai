@@ -6,7 +6,7 @@ struct PiView: View {
     var body: some View {
         RuntimeProbeView(
             title: "Pi",
-            subtitle: "Developer/admin harness for profile, workflow, prompt, and runtime repair work.",
+            subtitle: "Developer/admin harness for workflow, prompt, and runtime repair work.",
             buttonTitle: "Probe Pi",
             output: appState.piOutput,
             action: appState.checkPi
