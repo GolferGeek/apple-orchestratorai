@@ -51,6 +51,22 @@ The repository should contain the reproducible pieces:
 - documentation and intention files
 - tests
 
+Current development bootstrap commands:
+
+```bash
+scripts/bootstrap-hermes.sh
+source .runtime/hermes-env.sh
+scripts/start-hermes-api.sh
+```
+
+In another terminal:
+
+```bash
+scripts/probe-hermes-api.sh
+```
+
+This verifies the Hermes API server transport. Completing an actual run also requires configuring an inference provider or local model inside `.runtime/hermes-home`.
+
 The eventual packaged Mac app should use an Apple application-support layout:
 
 ```text

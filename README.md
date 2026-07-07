@@ -36,3 +36,28 @@ When a skill needs external access, Hermes asks for or uses an MCP-backed resour
 - The Apple app renders generic status, timeline, table, form, artifact, and action blocks from Hermes.
 
 See [docs/architecture.md](docs/architecture.md) for the initial model.
+
+## Development Bootstrap
+
+This repo owns the local Hermes bootstrap process, but runtime files stay out of git.
+
+```bash
+scripts/bootstrap-hermes.sh
+source .runtime/hermes-env.sh
+scripts/start-hermes-api.sh
+```
+
+In another terminal:
+
+```bash
+scripts/probe-hermes-api.sh
+```
+
+Development layout:
+
+```text
+.runtime/
+  hermes-agent/
+  hermes-home/
+  venvs/hermes-dev/
+```
