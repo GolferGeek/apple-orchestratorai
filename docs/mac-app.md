@@ -38,12 +38,12 @@ The app opens on a Voice command surface. It currently supports dictation-friend
 - `reload efforts`
 - `help`
 
-Native push-to-talk speech recognition is wired through the `Listen` button. Development builds embed these privacy strings into the executable Info.plist section:
+Native push-to-talk speech recognition is wired through the `Listen` button. The run script launches a development `.app` wrapper so macOS can read these privacy strings from the app bundle:
 
 - `NSMicrophoneUsageDescription`
 - `NSSpeechRecognitionUsageDescription`
 
-When the app moves from Swift Package executable to an Xcode app bundle, those keys should move into the app target's bundled `Info.plist`.
+Do not use raw `swift run` for testing microphone or speech recognition. macOS may not treat the raw executable as a privacy-described app bundle.
 
 ## Build
 
@@ -56,6 +56,12 @@ Or directly:
 ```bash
 cd mac-app/AppleOrchestratorAI
 swift build
+```
+
+To create the development `.app` wrapper:
+
+```bash
+scripts/package-mac-app.sh
 ```
 
 ## Run

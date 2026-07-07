@@ -4,8 +4,16 @@
 <dict>
   <key>CFBundleIdentifier</key>
   <string>com.golfergeek.apple-orchestratorai.dev</string>
+  <key>CFBundleExecutable</key>
+  <string>AppleOrchestratorAI</string>
   <key>CFBundleName</key>
   <string>Apple Orchestrator AI</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>0.1.0</string>
+  <key>CFBundleVersion</key>
+  <string>1</string>
   <key>NSMicrophoneUsageDescription</key>
   <string>Apple Orchestrator AI uses the microphone so you can speak commands to the local assistant.</string>
   <key>NSSpeechRecognitionUsageDescription</key>

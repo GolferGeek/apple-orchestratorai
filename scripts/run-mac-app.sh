@@ -2,6 +2,6 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "${ROOT_DIR}/mac-app/AppleOrchestratorAI"
+APP_PATH="$("${ROOT_DIR}/scripts/package-mac-app.sh")"
 
-swift run AppleOrchestratorAI
+open -n "${APP_PATH}"
