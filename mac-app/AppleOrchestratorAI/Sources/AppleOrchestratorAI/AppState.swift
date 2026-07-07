@@ -16,8 +16,11 @@ final class AppState {
     var voiceLines: [String] = [
         "App: Tell me what you want to do."
     ]
+    var isListening = false
+    var speechStatus = "Microphone idle."
 
     private let speechSynthesizer = AVSpeechSynthesizer()
+    private let speechRecognizer = SpeechCommandRecognizer()
 
     init() {
         repoRoot = RepositoryLocator.findRepoRoot()
@@ -84,6 +87,32 @@ final class AppState {
     func runQuickCommand(_ command: String) {
         voiceCommand = command
         submitVoiceCommand()
+    }
+
+    func toggleListening() {
+        if isListening {
+            speechRecognizer.stop()
+            isListening = false
+            speechStatus = "Microphone idle."
+            return
+        }
+
+        Task {
+            await speechRecognizer.start { [weak self] transcript, isFinal in
+                guard let self else { return }
+                self.voiceCommand = transcript
+                if isFinal {
+                    self.submitVoiceCommand()
+                    self.isListening = false
+                    self.speechStatus = "Microphone idle."
+                }
+            } onStatus: { [weak self] status in
+                guard let self else { return }
+                self.speechStatus = status
+                self.isListening = self.speechRecognizer.isListening
+            }
+            isListening = speechRecognizer.isListening
+        }
     }
 
     private func handleVoiceCommand(_ command: String) {

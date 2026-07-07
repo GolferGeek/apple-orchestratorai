@@ -73,11 +73,22 @@ struct VoiceCommandView: View {
             } label: {
                 Label("Speak Prompt", systemImage: "speaker.wave.2")
             }
+
+            Button {
+                appState.toggleListening()
+            } label: {
+                Label(appState.isListening ? "Stop" : "Listen", systemImage: appState.isListening ? "mic.slash" : "mic")
+            }
+            .buttonStyle(.borderedProminent)
         }
     }
 
     private var quickCommands: some View {
         HStack(spacing: 10) {
+            Text(appState.speechStatus)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
             Button {
                 appState.runQuickCommand("show coder efforts")
             } label: {

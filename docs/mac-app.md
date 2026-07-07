@@ -38,7 +38,12 @@ The app opens on a Voice command surface. It currently supports dictation-friend
 - `reload efforts`
 - `help`
 
-Native push-to-talk speech recognition will need the Mac app bundle permissions and privacy strings. The current command field works with macOS Dictation while the app shell is still Swift Package-based.
+Native push-to-talk speech recognition is wired through the `Listen` button. Development builds embed these privacy strings into the executable Info.plist section:
+
+- `NSMicrophoneUsageDescription`
+- `NSSpeechRecognitionUsageDescription`
+
+When the app moves from Swift Package executable to an Xcode app bundle, those keys should move into the app target's bundled `Info.plist`.
 
 ## Build
 
