@@ -40,6 +40,7 @@ Private local profiles, gitignored under `config/hermes-profiles.local/`:
 - `book-writer`
 - `post-writer`
 - `ai-scout`
+- `golfer`
 
 The app may route requests automatically, but ambiguous routing should ask for confirmation. Cross-profile memory promotion should be explicit.
 

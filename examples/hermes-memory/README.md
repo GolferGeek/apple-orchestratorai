@@ -23,3 +23,5 @@ Each profile can start with:
 - `MEMORY.example.md`: durable project/domain memory for that profile.
 
 Do not copy real client data, credentials, private calendar data, or sensitive personal facts into committed examples.
+
+Included examples cover personal, legal-dev, coder, writer, ai-scout, and golfer-style profiles.

@@ -17,6 +17,7 @@ Private local profiles:
 - `book-writer`: long-form book writing.
 - `post-writer`: short-form posts and essays.
 - `ai-scout`: AI model/tool/framework scouting.
+- `golfer`: golf practice, round planning, course strategy, and improvement tracking.
 
 No `legal-demo` profile yet. If a clean demo environment becomes useful later, clone from `legal-dev` after the legal pack stabilizes.
 
@@ -90,6 +91,7 @@ Examples:
 "Draft chapter 3"                         -> book-writer   local/private
 "Turn this into a LinkedIn post"          -> post-writer   local/private
 "Find the best new MLX tool model"        -> ai-scout      local/private
+"Plan tomorrow's range session"           -> golfer        local/private
 ```
 
 The app should support manual override:
