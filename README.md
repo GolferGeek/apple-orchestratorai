@@ -53,6 +53,14 @@ In another terminal:
 scripts/probe-hermes-api.sh
 ```
 
+For local MLX model setup:
+
+```bash
+scripts/check-ollama-mlx.sh
+scripts/upgrade-ollama-macos.sh
+scripts/pull-mlx-models.sh core
+```
+
 Development layout:
 
 ```text

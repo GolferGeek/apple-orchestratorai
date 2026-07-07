@@ -39,6 +39,60 @@ The exact model names should remain configurable, but the classes matter:
 
 Ollama's MLX support on Apple Silicon should be preferred where available because this product is Mac-first.
 
+The development baseline is:
+
+```text
+Ollama >= 0.31.1
+```
+
+This matters because Ollama 0.31.1 includes the faster Gemma 4 MLX path on Apple Silicon and updated MLX engine support. Older versions may run some MLX models, but they should not be treated as the supported baseline for this project.
+
+Local scripts:
+
+```bash
+scripts/check-ollama-mlx.sh
+scripts/upgrade-ollama-macos.sh
+scripts/pull-mlx-models.sh core
+```
+
+If `scripts/upgrade-ollama-macos.sh` reports that `/Applications` is not writable, use the official Ollama updater or rerun the script with permissions that can replace `/Applications/Ollama.app`.
+
+Recommended default MLX model set:
+
+```text
+gemma4:e2b-mlx
+gemma4:e4b-mlx
+gemma4:12b-mlx
+qwen3.6:27b-mlx
+```
+
+Use cases:
+
+- `gemma4:e2b-mlx`: very fast smoke tests, lightweight routing, simple classification.
+- `gemma4:e4b-mlx`: fast local assistant, smaller workflow steps, inexpensive iteration.
+- `gemma4:12b-mlx`: default local reasoning model for early workflows.
+- `qwen3.6:27b-mlx`: agentic coding, repository reasoning, workflow-building, and complex Hermes execution.
+
+Optional workstation tier:
+
+```text
+gemma4:26b-mlx
+```
+
+Optional full tier:
+
+```text
+gemma4:e2b-mlx
+gemma4:e4b-mlx
+gemma4:12b-mlx
+gemma4:26b-mlx
+gemma4:31b-mlx
+qwen3.6:27b-mlx
+qwen3.6:35b-mlx
+```
+
+Do not make the full tier the default. It is large and should be a conscious install choice.
+
 Do not hard-code a single model in workflow JSON. Workflow JSON can declare model needs as profiles:
 
 ```json
