@@ -3,7 +3,10 @@ set -euo pipefail
 
 OLLAMA_VERSION="${OLLAMA_VERSION:-v0.31.1}"
 ASSET_URL="${ASSET_URL:-https://github.com/ollama/ollama/releases/download/${OLLAMA_VERSION}/Ollama-darwin.zip}"
-APP_PATH="${APP_PATH:-/Applications/Ollama.app}"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+INSTALL_SCOPE="${INSTALL_SCOPE:-project}"
+APP_PATH="${APP_PATH:-${ROOT_DIR}/.runtime/ollama/Ollama.app}"
+OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11435}"
 TMP_DIR="$(mktemp -d)"
 
 cleanup() {
@@ -16,12 +19,14 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   exit 1
 fi
 
-APP_PARENT="$(dirname "${APP_PATH}")"
-
-if [[ ! -w "${APP_PARENT}" ]]; then
-  echo "${APP_PARENT} is not writable by the current user." >&2
-  echo "Run the official Ollama updater, or rerun this script with permissions that can replace ${APP_PATH}." >&2
-  exit 1
+if [[ "${INSTALL_SCOPE}" == "app" ]]; then
+  APP_PATH="/Applications/Ollama.app"
+  APP_PARENT="$(dirname "${APP_PATH}")"
+  if [[ ! -w "${APP_PARENT}" ]]; then
+    echo "${APP_PARENT} is not writable by the current user." >&2
+    echo "Run the official Ollama updater, or rerun this script with permissions that can replace ${APP_PATH}." >&2
+    exit 1
+  fi
 fi
 
 before="not installed"
@@ -46,6 +51,8 @@ if [[ ! -d "${TMP_DIR}/unpacked/Ollama.app" ]]; then
   exit 1
 fi
 
+mkdir -p "$(dirname "${APP_PATH}")"
+
 if [[ -d "${APP_PATH}" ]]; then
   backup="${APP_PATH}.backup.$(date +%Y%m%d%H%M%S)"
   echo "Backing up existing app to ${backup}"
@@ -55,8 +62,20 @@ fi
 echo "Installing ${APP_PATH}"
 mv "${TMP_DIR}/unpacked/Ollama.app" "${APP_PATH}"
 
-echo "Starting Ollama"
-open -a Ollama
-sleep 3
+if [[ "${INSTALL_SCOPE}" == "project" ]]; then
+  cat > "${ROOT_DIR}/.runtime/ollama-env.sh" <<EOF
+#!/usr/bin/env bash
+export APPLE_ORCHESTRATOR_OLLAMA_BIN="${APP_PATH}/Contents/Resources/ollama"
+export OLLAMA_HOST="${OLLAMA_HOST}"
+export PATH="${APP_PATH}/Contents/Resources:\$PATH"
+EOF
+  chmod 700 "${ROOT_DIR}/.runtime/ollama-env.sh"
+  echo "Starting project-local Ollama on ${OLLAMA_HOST}"
+  "${ROOT_DIR}/scripts/start-ollama-mlx.sh"
+else
+  echo "Starting Ollama"
+  open -a Ollama
+  sleep 3
+fi
 
-echo "Updated: $(ollama --version)"
+echo "Updated: $("${APP_PATH}/Contents/Resources/ollama" --version)"

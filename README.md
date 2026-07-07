@@ -58,6 +58,7 @@ For local MLX model setup:
 ```bash
 scripts/check-ollama-mlx.sh
 scripts/upgrade-ollama-macos.sh
+scripts/start-ollama-mlx.sh
 scripts/pull-mlx-models.sh core
 ```
 

@@ -52,10 +52,19 @@ Local scripts:
 ```bash
 scripts/check-ollama-mlx.sh
 scripts/upgrade-ollama-macos.sh
+scripts/start-ollama-mlx.sh
 scripts/pull-mlx-models.sh core
 ```
 
-If `scripts/upgrade-ollama-macos.sh` reports that `/Applications` is not writable, use the official Ollama updater or rerun the script with permissions that can replace `/Applications/Ollama.app`.
+By default, `scripts/upgrade-ollama-macos.sh` installs a project-local Ollama app under `.runtime/ollama/Ollama.app` and runs it on `127.0.0.1:11435`. This avoids replacing the user's global `/Applications/Ollama.app`.
+
+To replace the global app instead, run:
+
+```bash
+INSTALL_SCOPE=app scripts/upgrade-ollama-macos.sh
+```
+
+If the app-scope install reports that `/Applications` is not writable, use the official Ollama updater or rerun the script with permissions that can replace `/Applications/Ollama.app`.
 
 Recommended default MLX model set:
 

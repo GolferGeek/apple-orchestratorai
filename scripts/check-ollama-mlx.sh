@@ -2,13 +2,27 @@
 set -euo pipefail
 
 MIN_OLLAMA_VERSION="${MIN_OLLAMA_VERSION:-0.31.1}"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_OLLAMA_BIN="${ROOT_DIR}/.runtime/ollama/Ollama.app/Contents/Resources/ollama"
 
-if ! command -v ollama >/dev/null 2>&1; then
+if [[ -x "${PROJECT_OLLAMA_BIN}" ]]; then
+  OLLAMA_BIN="${APPLE_ORCHESTRATOR_OLLAMA_BIN:-${PROJECT_OLLAMA_BIN}}"
+  export OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11435}"
+else
+  OLLAMA_BIN="${APPLE_ORCHESTRATOR_OLLAMA_BIN:-ollama}"
+fi
+
+if ! command -v "${OLLAMA_BIN}" >/dev/null 2>&1; then
   echo "ollama is not installed or not on PATH" >&2
   exit 1
 fi
 
-current="$(ollama --version | awk '{print $NF}')"
+current="$("${OLLAMA_BIN}" --version 2>&1 | sed -nE 's/.*version (is )?([0-9]+([.][0-9]+)+).*/\2/p' | tail -n 1)"
+
+if [[ -z "${current}" ]]; then
+  echo "Could not determine Ollama version from ${OLLAMA_BIN}" >&2
+  exit 1
+fi
 
 python3 - "$current" "$MIN_OLLAMA_VERSION" <<'PY'
 import sys
@@ -26,4 +40,4 @@ PY
 
 echo
 echo "Installed MLX model tags:"
-ollama list | awk 'NR == 1 || $1 ~ /-mlx$/ { print }'
+"${OLLAMA_BIN}" list | awk 'NR == 1 || $1 ~ /-mlx$/ { print }'
