@@ -23,7 +23,7 @@ The important distinction is that the system is skills-driven rather than hard-c
 
 ## Product Boundary
 
-Apple Orchestrator AI Local is Mac-first. The Mac is the execution node:
+Apple Orchestrator AI Local is Mac-first. The Mac Studio is the initial execution authority and admin controller:
 
 - Hermes runs on the Mac.
 - Ollama runs on the Mac.
@@ -32,7 +32,17 @@ Apple Orchestrator AI Local is Mac-first. The Mac is the execution node:
 - The local observability database lives on the Mac.
 - MCP tools/connectors are initiated from the Mac.
 
-iPhone and iPad are controllers. They can start runs, view progress, approve human-in-the-loop tasks, answer Hermes questions, and view outputs, but they do not run the workflow engine or heavy model work.
+iPhone and iPad are remote controllers. They can submit work, start approved runs, view progress, approve human-in-the-loop tasks, answer Hermes questions, steer runs, and view outputs, but they do not run the workflow engine or heavy model work.
+
+The Mac Studio can also act as a controller because it is the admin UI. The MacBook Pro has no v1 product role unless later added as a controller. Avoid building a partial second-Mac runtime mode in v1.
+
+V1 persistence should use Apple-native structures:
+
+- iCloud Drive or app-managed files for workflow files, effort files, artifacts, and output packages.
+- SwiftData/Core Data/CloudKit where Apple-native records and sync are useful.
+- no MySQL or Supabase in the base product.
+
+Even when Apple sync is used, the execution Mac remains the authority for Hermes execution, Ollama execution, Codex subscription auth, runtime state, and database writes.
 
 Hermes should be bundled with the Mac app. Treat Hermes as an upgradeable local runtime made of files, folders, skills, workflow packs, schemas, and configuration. The app installer or updater can install or upgrade Hermes in place while preserving user workflow files, matter workspaces, run history, and connector configuration.
 

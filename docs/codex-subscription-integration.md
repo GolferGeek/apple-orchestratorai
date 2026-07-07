@@ -27,10 +27,12 @@ Second, the bundled Hermes docs describe a Codex app-server runtime. That path l
 Current checks on this machine:
 
 - Codex CLI exists at `/Users/golfergeek/.npm-global/bin/codex`.
-- Codex CLI reports version `0.38.0`.
+- Codex CLI reports version `0.142.5`.
 - `~/.codex/auth.json` exists, so the user's normal Codex CLI appears to have local auth state.
-- Hermes is not yet logged into its project-local `OpenAI Codex` auth provider.
-- The bundled Hermes Codex app-server runtime docs say Codex CLI `0.130.0` or newer is required, so the installed CLI likely needs to be upgraded before app-server runtime testing.
+- Hermes is logged into its project-local `OpenAI Codex` auth provider.
+- A Hermes one-shot smoke test using `OPENAI_API_KEY=` and provider `openai-codex` completed with `cost_status: included`.
+- The bundled Hermes Codex app-server runtime docs say Codex CLI `0.130.0` or newer is required, and the installed CLI now satisfies that requirement.
+- The separate Codex app-server daemon path still requires the standalone managed Codex install, not just the npm CLI.
 
 Do not print or commit the contents of `~/.codex/auth.json` or `.runtime/hermes-home/auth.json`.
 

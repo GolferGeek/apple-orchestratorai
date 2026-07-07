@@ -23,6 +23,7 @@
 ## Phase 2 — Contract Prototype
 
 - Define workflow JSON schema.
+- Define app effort folder contract and effort metadata schema.
 - Define Apple display/action/event JSON schemas.
 - Define Hermes profile routing and profile manifest schemas.
 - Add a thin Hermes runtime adapter that wraps health, capabilities, runs, run events, approvals, stop, and session chat.

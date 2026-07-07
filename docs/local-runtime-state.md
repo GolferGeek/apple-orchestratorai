@@ -2,6 +2,8 @@
 
 The local database is for observability, state, outputs, and audit. It is not the source of workflow structure.
 
+V1 should use Apple-native persistence, not MySQL or Supabase. The Mac Studio execution authority owns runtime database writes. iPhone and iPad controllers submit work, approvals, questions, and steering through app-controlled surfaces rather than writing runtime state as peers.
+
 It should store:
 
 - runs

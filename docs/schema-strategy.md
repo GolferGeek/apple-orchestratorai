@@ -8,6 +8,9 @@ The project should define schemas for:
 
 - workflow JSON
 - workflow pack manifest
+- profile manifest
+- app effort metadata
+- app effort questions
 - Hermes display response
 - Hermes view block
 - Hermes event

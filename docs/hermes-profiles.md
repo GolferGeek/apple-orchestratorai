@@ -4,6 +4,8 @@ Hermes profiles are specialized local agents with separate memory, state, skills
 
 The Apple app should present one assistant experience, but internally route work to the correct Hermes profile.
 
+See [Profile Contract](profile-contract.md) for the current profile manifest shape, inference routes, work intake policy, and device/persistence assumptions.
+
 ## Profile Set
 
 Committed product profile:
@@ -131,6 +133,9 @@ Responsibilities:
 
 - maintain the effort queue
 - convert intentions into Codex work packets
+- review app effort inbox items
+- create current efforts when an intention is clear enough
+- write blocking questions when an intention is not clear enough
 - track Codex results
 - summarize build/test/commit outcomes
 - remember app-specific architecture preferences
