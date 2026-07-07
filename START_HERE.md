@@ -25,13 +25,14 @@ The goal is to build a Mac-first local orchestration app on top of Hermes:
 9. [Hermes Bundle](docs/hermes-bundle.md)
 10. [Local Models](docs/local-models.md)
 11. [Pi Runtime](docs/pi-runtime.md)
-12. [Schema Strategy](docs/schema-strategy.md)
-13. [Legal Workflow Pack](docs/legal-workflow-pack.md)
-14. [Document Onboarding Slice](docs/document-onboarding-slice.md)
-15. [Testing Strategy](docs/testing-strategy.md)
-16. [Build Plan](docs/build-plan.md)
-17. [Iterative Build Method](docs/iterative-build-method.md)
-18. [Open Questions](docs/open-questions.md)
+12. [Hermes Profiles](docs/hermes-profiles.md)
+13. [Schema Strategy](docs/schema-strategy.md)
+14. [Legal Workflow Pack](docs/legal-workflow-pack.md)
+15. [Document Onboarding Slice](docs/document-onboarding-slice.md)
+16. [Testing Strategy](docs/testing-strategy.md)
+17. [Build Plan](docs/build-plan.md)
+18. [Iterative Build Method](docs/iterative-build-method.md)
+19. [Open Questions](docs/open-questions.md)
 
 ## First Build Target
 
@@ -45,6 +46,7 @@ The first useful prototype should prove:
 6. The app can render active/completed/blocked/human-in-loop runs without custom workflow UI.
 7. One legal workflow can run against a local test matter.
 8. The Mac app can expose a small admin/workbench surface for Pi without making Pi part of the normal workflow UI.
+9. The Mac app can route requests to the right Hermes profile.
 
 ## Non-Goals for the First Build
 

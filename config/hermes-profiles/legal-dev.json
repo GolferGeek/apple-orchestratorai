@@ -1,0 +1,38 @@
+{
+  "id": "legal-dev",
+  "displayName": "Legal Dev",
+  "purpose": "Build, test, and run legal workflows; answer legal-development questions; manage workflow JSON, legal skills, sample matters, and human review structures.",
+  "routingTriggers": [
+    "legal",
+    "matter",
+    "client",
+    "complaint",
+    "contract",
+    "document onboarding",
+    "legal workflow",
+    "human in the loop",
+    "approval checkpoint"
+  ],
+  "memoryPolicy": {
+    "privacyLevel": "legal-development",
+    "commitLiveMemory": false,
+    "allowedMemory": [
+      "workflow design decisions",
+      "legal workflow pack structure",
+      "sample/test matter assumptions",
+      "approval checkpoint patterns",
+      "non-confidential legal product notes"
+    ],
+    "disallowedMemory": [
+      "real client secrets unless explicitly imported into a safe local matter workspace",
+      "credentials",
+      "personal assistant memory"
+    ]
+  },
+  "toolPolicy": {
+    "canUsePi": false,
+    "canUseCodex": false,
+    "canUseExternalResearch": true,
+    "canModifySource": false
+  }
+}

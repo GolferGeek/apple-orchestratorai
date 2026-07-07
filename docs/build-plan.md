@@ -24,6 +24,7 @@
 
 - Define workflow JSON schema.
 - Define Apple display/action/event JSON schemas.
+- Define Hermes profile routing and profile manifest schemas.
 - Add a thin Hermes runtime adapter that wraps health, capabilities, runs, run events, approvals, stop, and session chat.
 - Normalize Hermes run events into local app events.
 - Convert only document onboarding to first-pass workflow JSON.
@@ -48,6 +49,7 @@
 
 - Start/stop/discover Hermes locally.
 - Start/discover Pi locally for admin/developer workbench use.
+- Select or route to the correct Hermes profile.
 - List available workflows.
 - Run one workflow through Hermes.
 - Render generic blocks.

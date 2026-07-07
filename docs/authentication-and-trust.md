@@ -23,6 +23,26 @@ For the first build, identity can be local-device identity:
 
 Do not introduce SaaS accounts for the local product.
 
+## Profile Trust
+
+Hermes profiles are trust and memory boundaries.
+
+The app should ship versioned profile manifests, but should not commit live profile memory or state. Runtime profile data may contain personal preferences, legal-workflow assumptions, coding plans, drafts, or research history.
+
+Committed product profile:
+
+- `legal-dev`
+
+Private local profiles, gitignored under `config/hermes-profiles.local/`:
+
+- `personal`
+- `coder`
+- `book-writer`
+- `post-writer`
+- `ai-scout`
+
+The app may route requests automatically, but ambiguous routing should ask for confirmation. Cross-profile memory promotion should be explicit.
+
 ## Device Pairing
 
 iPhone/iPad controllers need a pairing mechanism with the Mac.
