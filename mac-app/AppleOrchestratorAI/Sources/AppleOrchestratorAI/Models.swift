@@ -2,7 +2,6 @@ import Foundation
 
 enum AppSection: String, CaseIterable, Identifiable {
     case voice
-    case coderEfforts
     case hermes
     case pi
 
@@ -12,8 +11,6 @@ enum AppSection: String, CaseIterable, Identifiable {
         switch self {
         case .voice:
             "Voice"
-        case .coderEfforts:
-            "Coder Efforts"
         case .hermes:
             "Hermes"
         case .pi:
@@ -25,12 +22,30 @@ enum AppSection: String, CaseIterable, Identifiable {
         switch self {
         case .voice:
             "mic"
-        case .coderEfforts:
-            "hammer"
         case .hermes:
             "bolt.horizontal"
         case .pi:
             "terminal"
+        }
+    }
+}
+
+enum ModalSurface: String, Identifiable {
+    case coderEfforts
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .coderEfforts:
+            "Coder Efforts"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .coderEfforts:
+            "hammer"
         }
     }
 }

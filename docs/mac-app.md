@@ -30,7 +30,15 @@ These intents currently read the local effort files and return spoken summaries.
 
 ## Voice
 
-The app opens on a Voice command surface. It currently supports dictation-friendly text commands and spoken responses:
+The app opens on a Voice command surface. It is not intended to be a traditional left-navigation app. The top strip only exposes the running surfaces that should always be reachable:
+
+- `Voice`
+- `Hermes`
+- `Pi`
+
+Profile-specific views should open as modal surfaces from voice commands. When dismissed, a reopen chip remains in the voice surface so the user can bring it back without navigating away.
+
+The voice surface currently supports dictation-friendly text commands and spoken responses:
 
 - `show coder efforts`
 - `check Hermes`

@@ -6,26 +6,59 @@ struct RootView: View {
     var body: some View {
         @Bindable var appState = appState
 
-        NavigationSplitView {
-            List(selection: $appState.selectedSection) {
+        VStack(spacing: 0) {
+            topBar(selection: $appState.selectedSection)
+            Divider()
+
+            Group {
+                switch appState.selectedSection {
+                case .voice:
+                    VoiceCommandView()
+                case .hermes:
+                    HermesView()
+                case .pi:
+                    PiView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .environment(appState)
+        .sheet(item: $appState.activeModal) { modal in
+            modalView(modal)
+                .environment(appState)
+                .frame(minWidth: 780, minHeight: 540)
+        }
+    }
+
+    private func topBar(selection: Binding<AppSection>) -> some View {
+        HStack(spacing: 14) {
+            Text("Apple Orchestrator AI")
+                .font(.headline)
+
+            Picker("Surface", selection: selection) {
                 ForEach(AppSection.allCases) { section in
                     Label(section.title, systemImage: section.symbolName)
                         .tag(section)
                 }
             }
-            .navigationTitle("Apple Orchestrator AI")
-        } detail: {
-            switch appState.selectedSection {
-            case .voice:
-                VoiceCommandView()
-            case .coderEfforts:
-                CoderEffortsView()
-            case .hermes:
-                HermesView()
-            case .pi:
-                PiView()
-            }
+            .pickerStyle(.segmented)
+            .frame(width: 360)
+
+            Spacer()
+
+            Text("Voice-first")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
         }
-        .environment(appState)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+    }
+
+    @ViewBuilder
+    private func modalView(_ modal: ModalSurface) -> some View {
+        switch modal {
+        case .coderEfforts:
+            CoderEffortsView()
+        }
     }
 }

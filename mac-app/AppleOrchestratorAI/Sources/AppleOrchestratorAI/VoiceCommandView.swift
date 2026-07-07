@@ -35,6 +35,10 @@ struct VoiceCommandView: View {
 
             quickCommands
 
+            if !appState.recentModalSurfaces.isEmpty {
+                recentSurfaces
+            }
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(Array(appState.voiceLines.enumerated()), id: \.offset) { _, line in
@@ -111,6 +115,23 @@ struct VoiceCommandView: View {
                 appState.runQuickCommand("help")
             } label: {
                 Label("Help", systemImage: "questionmark.circle")
+            }
+        }
+        .buttonStyle(.bordered)
+    }
+
+    private var recentSurfaces: some View {
+        HStack(spacing: 10) {
+            Text("Open again")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            ForEach(appState.recentModalSurfaces) { surface in
+                Button {
+                    appState.openModal(surface)
+                } label: {
+                    Label(surface.title, systemImage: surface.symbolName)
+                }
             }
         }
         .buttonStyle(.bordered)

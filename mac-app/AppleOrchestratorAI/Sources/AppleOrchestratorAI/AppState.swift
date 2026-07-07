@@ -7,6 +7,8 @@ import Observation
 final class AppState {
     var repoRoot: URL?
     var selectedSection: AppSection = .voice
+    var activeModal: ModalSurface?
+    var recentModalSurfaces: [ModalSurface] = []
     var surface: CoderEffortsSurface?
     var statusMessage = "Ready"
     var hermesOutput = ""
@@ -119,11 +121,11 @@ final class AppState {
         let normalized = command.lowercased()
 
         if normalized.contains("help") {
-            respond("You can say show coder efforts, check Hermes, check Pi, reload efforts, or go home.")
+            respond("You can say show coder efforts, check Hermes, check Pi, reload efforts, open writing, open AI scout, reload efforts, or go home.")
         } else if normalized.contains("coder") || normalized.contains("effort") || normalized.contains("inbox") {
-            selectedSection = .coderEfforts
             reloadEfforts()
-            respond("Opening Coder Efforts.")
+            openModal(.coderEfforts)
+            respond("Showing Coder Efforts.")
         } else if normalized.contains("check hermes") || normalized.contains("probe hermes") {
             selectedSection = .hermes
             checkHermes()
@@ -141,12 +143,23 @@ final class AppState {
         } else if normalized.contains("reload") || normalized.contains("refresh") {
             reloadEfforts()
             respond("Reloaded coder efforts.")
+        } else if normalized.contains("writing") || normalized.contains("book") || normalized.contains("post") {
+            respond("The writing profile surface is not built yet. I can add it after the profile schema is defined.")
+        } else if normalized.contains("scout") || normalized.contains("model") {
+            respond("The AI Scout surface is not built yet. I can add it after the profile schema is defined.")
         } else if normalized.contains("home") || normalized.contains("voice") {
             selectedSection = .voice
             respond("Back to voice.")
         } else {
             respond("I did not recognize that command yet. Try show coder efforts, check Hermes, or check Pi.")
         }
+    }
+
+    func openModal(_ modal: ModalSurface) {
+        if !recentModalSurfaces.contains(where: { $0 == modal }) {
+            recentModalSurfaces.append(modal)
+        }
+        activeModal = modal
     }
 
     private func respond(_ text: String) {
