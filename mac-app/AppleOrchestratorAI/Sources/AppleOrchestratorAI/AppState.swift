@@ -163,7 +163,7 @@ final class AppState {
         Task {
             do {
                 let response = try await hermesRunClient.startRun(
-                    input: documentOnboardingPrompt(),
+                    input: documentOnboardingLaunchInput(),
                     model: "qwen3.6:35b-a3b-nvfp4",
                     sessionId: "apple-orchestratorai-document-onboarding"
                 )
@@ -557,24 +557,111 @@ final class AppState {
         workflowRunStore.saveRun(workflowRuns[index], repoRoot: repoRoot)
     }
 
-    private func documentOnboardingPrompt() -> String {
-        if let client = legalSourceSelection.client, let matter = legalSourceSelection.matter {
-            let documentIds = legalSourceSelection.documents.map(\.id).joined(separator: ", ")
-            return """
-            Run the Apple Orchestrator AI document-onboarding workflow in local-only mode.
-            Resolve selected legal source references through Hermes/MCP, not through the frontend.
-            Client id: \(client.id)
-            Matter id: \(matter.id)
-            Document ids: \(documentIds.isEmpty ? "all selected matter documents" : documentIds)
-            Return concise progress and final output. Do not call external model providers.
-            """
+    private func documentOnboardingLaunchInput() -> String {
+        let payload = documentOnboardingLaunchPayload()
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let payloadText: String
+        if let data = try? encoder.encode(payload), let text = String(data: data, encoding: .utf8) {
+            payloadText = text
+        } else {
+            payloadText = "{}"
         }
 
         return """
-        Run the Apple Orchestrator AI document-onboarding workflow in local-only demo mode.
-        Use the Acme Robotics LLC / Vendor Agreement Renewal fixture.
-        Return concise progress and final output. Do not call external model providers.
+        Run the Apple Orchestrator AI workflow using this typed launch payload.
+        Treat the payload as the source of truth. Resolve source references through Hermes skills or MCP, not through the frontend.
+        Return concise progress and final output through normal Hermes run events. Do not call external model providers.
+        \(payloadText)
         """
+    }
+
+    private func documentOnboardingLaunchPayload() -> WorkflowLaunchPayload {
+        if let client = legalSourceSelection.client, let matter = legalSourceSelection.matter {
+            return Self.documentOnboardingLaunchPayload(
+                launchMode: "legal-source-picker",
+                classification: "client-confidential",
+                resolver: "legal.shared.list-legal-source-options.v0",
+                client: DisplayEntity(id: client.id, name: client.label),
+                matter: DisplayEntity(id: matter.id, name: matter.label),
+                documentIds: legalSourceSelection.documents.map(\.id),
+                documentLabels: legalSourceSelection.documents.map(\.label),
+                baseDirectory: nil,
+                filePaths: [],
+                sourceUris: []
+            )
+        }
+
+        return Self.documentOnboardingLaunchPayload(
+            launchMode: "fixture",
+            classification: "demo-or-public",
+            resolver: "shared.local-file-resolve-documents.v0",
+            client: DisplayEntity(id: "client-acme-robotics", name: "Acme Robotics LLC"),
+            matter: DisplayEntity(id: "matter-vendor-renewal-2026", name: "Vendor Agreement Renewal"),
+            documentIds: [],
+            documentLabels: ["engagement-letter.md", "vendor-renewal-summary.md"],
+            baseDirectory: "test-fixtures/legal/document-onboarding/acme-renewal",
+            filePaths: ["engagement-letter.md", "vendor-renewal-summary.md"],
+            sourceUris: [
+                "file://test-fixtures/legal/document-onboarding/acme-renewal/engagement-letter.md",
+                "file://test-fixtures/legal/document-onboarding/acme-renewal/vendor-renewal-summary.md"
+            ]
+        )
+    }
+
+    private static func documentOnboardingLaunchPayload(
+        launchMode: String,
+        classification: String,
+        resolver: String,
+        client: DisplayEntity,
+        matter: DisplayEntity,
+        documentIds: [String],
+        documentLabels: [String],
+        baseDirectory: String?,
+        filePaths: [String],
+        sourceUris: [String]
+    ) -> WorkflowLaunchPayload {
+        WorkflowLaunchPayload(
+            schemaVersion: "workflow.launch.v0",
+            kind: "workflow.launch",
+            workflowId: "document-onboarding",
+            profileId: "legal-dev",
+            launchMode: launchMode,
+            classification: classification,
+            modelPolicy: WorkflowLaunchModelPolicy(
+                defaultRoute: "local",
+                sovereignty: "local-only",
+                defaultLocalModel: "qwen3.6:35b-a3b-nvfp4",
+                allowedRoutes: ["local"],
+                fallbackBehavior: "fail-with-explanation"
+            ),
+            source: WorkflowLaunchSource(
+                resolver: resolver,
+                client: client,
+                matter: matter,
+                documentIds: documentIds,
+                documentLabels: documentLabels,
+                baseDirectory: baseDirectory,
+                filePaths: filePaths,
+                sourceUris: sourceUris
+            ),
+            outputContracts: [
+                WorkflowLaunchOutputContract(id: "response", type: "markdown", required: true),
+                WorkflowLaunchOutputContract(id: "document-onboarding-report", type: "export_document", required: true),
+                WorkflowLaunchOutputContract(id: "documentsMetadata", type: "json", required: true),
+                WorkflowLaunchOutputContract(id: "routingDecision", type: "json", required: true),
+                WorkflowLaunchOutputContract(id: "specialistOutputs", type: "json", required: true),
+                WorkflowLaunchOutputContract(id: "synthesis", type: "json", required: true),
+                WorkflowLaunchOutputContract(id: "reviewPayload", type: "json", required: true)
+            ],
+            instructions: [
+                "Resolve client, matter, and document references inside Hermes.",
+                "Do not let the frontend access source stores directly.",
+                "Emit workflow-event.v0 compatible progress events.",
+                "Pause for human review when the workflow asks for it.",
+                "Do not use external model providers for local-only workflows."
+            ]
+        )
     }
 
     private static func initialDocumentOnboardingRun(runId: String, status: String) -> WorkflowRunRecord {

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestratorai.local/schemas/workflows/workflow-launch.v0.schema.json",
+  "title": "Workflow Launch Payload v0",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "kind",
+    "workflowId",
+    "profileId",
+    "launchMode",
+    "classification",
+    "modelPolicy",
+    "source",
+    "outputContracts",
+    "instructions"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "workflow.launch.v0"
+    },
+    "kind": {
+      "const": "workflow.launch"
+    },
+    "workflowId": {
+      "type": "string"
+    },
+    "profileId": {
+      "type": "string"
+    },
+    "launchMode": {
+      "type": "string",
+      "description": "The UI or automation path that created this launch request."
+    },
+    "classification": {
+      "type": "string",
+      "description": "Data classification used by workflow model policy and source access rules."
+    },
+    "modelPolicy": {
+      "type": "object",
+      "required": ["defaultRoute", "sovereignty", "defaultLocalModel", "allowedRoutes", "fallbackBehavior"],
+      "properties": {
+        "defaultRoute": { "type": "string" },
+        "sovereignty": { "type": "string" },
+        "defaultLocalModel": { "type": "string" },
+        "allowedRoutes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "fallbackBehavior": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["resolver", "client", "matter", "documentIds", "documentLabels", "filePaths", "sourceUris"],
+      "properties": {
+        "resolver": {
+          "type": "string",
+          "description": "Hermes skill or logical resolver responsible for source resolution."
+        },
+        "client": {
+          "$ref": "display-envelope.v0.schema.json#/$defs/displayEntity"
+        },
+        "matter": {
+          "$ref": "display-envelope.v0.schema.json#/$defs/displayEntity"
+        },
+        "documentIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "documentLabels": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "baseDirectory": {
+          "type": ["string", "null"]
+        },
+        "filePaths": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sourceUris": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "outputContracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "required"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string" },
+          "required": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "instructions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

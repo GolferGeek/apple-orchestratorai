@@ -348,3 +348,54 @@ struct WorkflowExplanationAction: Identifiable, Codable, Equatable {
     let id: String
     let label: String
 }
+
+struct WorkflowLaunchPayload: Encodable {
+    let schemaVersion: String
+    let kind: String
+    let workflowId: String
+    let profileId: String
+    let launchMode: String
+    let classification: String
+    let modelPolicy: WorkflowLaunchModelPolicy
+    let source: WorkflowLaunchSource
+    let outputContracts: [WorkflowLaunchOutputContract]
+    let instructions: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case schemaVersion
+        case kind
+        case workflowId
+        case profileId
+        case launchMode
+        case classification
+        case modelPolicy
+        case source
+        case outputContracts
+        case instructions
+    }
+}
+
+struct WorkflowLaunchModelPolicy: Encodable {
+    let defaultRoute: String
+    let sovereignty: String
+    let defaultLocalModel: String
+    let allowedRoutes: [String]
+    let fallbackBehavior: String
+}
+
+struct WorkflowLaunchSource: Encodable {
+    let resolver: String
+    let client: DisplayEntity
+    let matter: DisplayEntity
+    let documentIds: [String]
+    let documentLabels: [String]
+    let baseDirectory: String?
+    let filePaths: [String]
+    let sourceUris: [String]
+}
+
+struct WorkflowLaunchOutputContract: Encodable {
+    let id: String
+    let type: String
+    let required: Bool
+}

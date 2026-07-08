@@ -7,7 +7,7 @@
   "properties": {
     "input": {
       "type": "string",
-      "description": "Natural-language or structured workflow launch instruction sent to Hermes."
+      "description": "Natural-language instruction or a serialized workflow.launch.v0 payload sent to Hermes."
     },
     "instructions": {
       "type": "string",

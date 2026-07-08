@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_DIR="${APPLE_ORCHESTRATOR_STATE_DIR:-${ROOT_DIR}/.runtime/apple-local-state}"
 RUN_ID="${RUN_ID:-run-document-onboarding-$(date -u +%Y%m%dT%H%M%SZ)}"
 FIXTURE="${ROOT_DIR}/test-fixtures/legal/document-onboarding/acme-renewal/input.json"
+LAUNCH_PAYLOAD="${ROOT_DIR}/test-fixtures/legal/document-onboarding/acme-renewal/launch-payload.json"
 WORKFLOW="${ROOT_DIR}/workflows/legal/document-onboarding.workflow.json"
 RUN_FILE="${STATE_DIR}/runs/${RUN_ID}.json"
 EVENTS_FILE="${STATE_DIR}/events/${RUN_ID}.jsonl"
@@ -14,6 +15,11 @@ MODEL="${MODEL:-qwen3.6:35b-a3b-nvfp4}"
 
 if [[ ! -f "${FIXTURE}" ]]; then
   echo "Missing fixture: ${FIXTURE}" >&2
+  exit 1
+fi
+
+if [[ ! -f "${LAUNCH_PAYLOAD}" ]]; then
+  echo "Missing launch payload: ${LAUNCH_PAYLOAD}" >&2
   exit 1
 fi
 
@@ -66,17 +72,19 @@ with Path(events_file).open("a") as handle:
     handle.write(json.dumps(unit_event, separators=(",", ":")) + "\n")
 PY
 
-  prompt="$(python3 - "${WORKFLOW}" "${FIXTURE}" "${stage_id}" "${stage_name}" "${stage_skill}" <<'PY'
+  prompt="$(python3 - "${WORKFLOW}" "${FIXTURE}" "${LAUNCH_PAYLOAD}" "${stage_id}" "${stage_name}" "${stage_skill}" <<'PY'
 import json
 import sys
 
-workflow_path, fixture_path, stage_id, stage_name, stage_skill = sys.argv[1:6]
+workflow_path, fixture_path, launch_payload_path, stage_id, stage_name, stage_skill = sys.argv[1:7]
 workflow = json.load(open(workflow_path))
 fixture = json.load(open(fixture_path))
+launch_payload = json.load(open(launch_payload_path))
 stage = next(item for item in workflow["runtime"]["observability"]["presentationStages"] if item == stage_id)
 summary = {
     "workflowId": workflow["id"],
     "workflowName": workflow["name"],
+    "launchPayload": launch_payload,
     "stageId": stage,
     "stageName": stage_name,
     "skill": stage_skill,
