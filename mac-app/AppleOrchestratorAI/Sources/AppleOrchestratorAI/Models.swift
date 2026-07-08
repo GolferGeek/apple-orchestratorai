@@ -80,6 +80,7 @@ struct WorkflowCatalogItem: Identifiable, Decodable, Equatable {
     let launchModes: [String]
     let humanInteraction: String
     let defaultLocalModel: String
+    let outputContracts: [WorkflowLaunchOutputContract]
 }
 
 struct WorkflowExecutionPlan: Identifiable, Decodable, Equatable {
@@ -471,8 +472,32 @@ struct WorkflowLaunchSource: Encodable {
     let sourceUris: [String]
 }
 
-struct WorkflowLaunchOutputContract: Encodable {
+struct WorkflowLaunchOutputContract: Codable, Equatable {
     let id: String
     let type: String
     let required: Bool
+}
+
+struct WorkflowOutputPacket {
+    let items: [WorkflowOutputPacketItem]
+
+    var fulfilledCount: Int {
+        items.filter(\.isFulfilled).count
+    }
+}
+
+struct WorkflowOutputPacketItem: Identifiable {
+    let id: String
+    let type: String
+    let required: Bool
+    let output: OutputEnvelope?
+    let eventOutput: WorkflowEventOutput?
+
+    var isFulfilled: Bool {
+        output != nil || eventOutput != nil
+    }
+
+    var title: String {
+        output?.title ?? eventOutput?.title ?? id
+    }
 }

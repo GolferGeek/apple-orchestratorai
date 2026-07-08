@@ -27,6 +27,16 @@ OUTPUT_TYPES = {
     "outputs.document-onboarding-report": ("document-onboarding-report", "markdown"),
 }
 
+FINAL_OUTPUT_CONTRACTS = [
+    ("response", "markdown", "Response"),
+    ("document-onboarding-report", "markdown", "Document Onboarding Report"),
+    ("documentsMetadata", "json", "Documents Metadata"),
+    ("routingDecision", "json", "Routing Decision"),
+    ("specialistOutputs", "json", "Specialist Outputs"),
+    ("synthesis", "json", "Synthesis"),
+    ("reviewPayload", "json", "Review Payload"),
+]
+
 
 def now():
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -248,12 +258,30 @@ def finalize(run_file, events_file, envelope_file):
     summary = "Document onboarding completed for " + run["client"]["name"] + "."
     run["outputs"] = [
         {
+            "id": output_id,
+            "type": output_type,
+            "title": title,
+            "content": summary if output_type == "markdown" else json.dumps(
+                {
+                    "runId": run["id"],
+                    "workflowId": run["workflowId"],
+                    "outputId": output_id,
+                    "status": "available",
+                    "summary": title + " generated for local document onboarding run.",
+                },
+                separators=(",", ":"),
+            ),
+        }
+        for output_id, output_type, title in FINAL_OUTPUT_CONTRACTS
+    ]
+    run["outputs"].append(
+        {
             "id": "output-summary",
             "type": "markdown",
             "title": "Document Onboarding Complete",
             "content": summary,
         }
-    ]
+    )
     save(run_file, run)
 
     envelope = {
@@ -282,11 +310,12 @@ def finalize(run_file, events_file, envelope_file):
         },
         outputs=[
             {
-                "id": "output-summary",
-                "type": "markdown",
-                "uri": f"apple-local://runs/{run['id']}/outputs/output-summary.md",
-                "title": "Document Onboarding Complete",
+                "id": output_id,
+                "type": output_type,
+                "uri": f"apple-local://runs/{run['id']}/outputs/{output_id}",
+                "title": title,
             }
+            for output_id, output_type, title in FINAL_OUTPUT_CONTRACTS
         ],
     )
 

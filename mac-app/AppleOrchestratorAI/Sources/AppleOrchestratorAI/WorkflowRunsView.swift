@@ -140,13 +140,21 @@ private struct WorkflowRunCard: View {
                 HumanReviewBlock(runId: run.id, review: humanReview)
             }
 
-            ForEach(run.outputs) { output in
+            let outputPacket = appState.outputPacket(for: run)
+            OutputPacketBlock(packet: outputPacket)
+
+            ForEach(extraOutputs(excluding: outputPacket)) { output in
                 OutputBlock(output: output)
             }
         }
         .padding(14)
         .background(Color(nsColor: .controlBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func extraOutputs(excluding packet: WorkflowOutputPacket) -> [OutputEnvelope] {
+        let packetIds = Set(packet.items.map(\.id))
+        return run.outputs.filter { !packetIds.contains($0.id) }
     }
 }
 
@@ -368,6 +376,62 @@ private struct HumanReviewBlock: View {
         .padding(12)
         .background(.blue.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct OutputPacketBlock: View {
+    let packet: WorkflowOutputPacket
+
+    var body: some View {
+        if !packet.items.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("Output Packet")
+                        .font(.subheadline.weight(.semibold))
+                    Spacer()
+                    StatusBadge(text: "\(packet.fulfilledCount)/\(packet.items.count)")
+                }
+
+                ForEach(packet.items) { item in
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Image(systemName: item.isFulfilled ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(item.isFulfilled ? .green : .secondary)
+                            Text(item.title)
+                                .font(.callout.weight(.medium))
+                            Spacer()
+                            StatusBadge(text: item.type)
+                            if item.required {
+                                StatusBadge(text: "required")
+                            }
+                        }
+
+                        if let output = item.output {
+                            Text(output.content)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(4)
+                                .textSelection(.enabled)
+                        } else if let eventOutput = item.eventOutput {
+                            Text(eventOutput.uri ?? "Available from event stream.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .textSelection(.enabled)
+                        } else {
+                            Text("Waiting for Hermes to produce this output.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(10)
+                    .background(Color(nsColor: .textBackgroundColor).opacity(0.65))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+            }
+            .padding(12)
+            .background(.green.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
     }
 }
 

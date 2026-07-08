@@ -209,6 +209,10 @@ Skill-aware events may include:
 
 The app renders known fields generically and preserves `raw` for audit/debugging. Workflow-specific interpretation remains inside Hermes skills.
 
+## Output Packets
+
+Runs should reconcile produced outputs against the workflow launch output contracts. The app should show each contract item as fulfilled or waiting, using run outputs first and event output references as supporting evidence. Extra outputs may still be shown, but the main output packet should be contract-shaped rather than a loose list of markdown blobs.
+
 ## Native Hermes vs App Display Contract
 
 Hermes' native API is the transport and lifecycle contract. The Apple display contract is a product-level layer on top of it.

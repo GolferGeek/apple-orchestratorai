@@ -49,7 +49,8 @@ struct WorkflowCatalogStore {
             stages: workflow.runtime.observability.presentationStages,
             launchModes: workflow.frontend.launchModes.map(\.name),
             humanInteraction: workflow.operatingMode.humanInteraction,
-            defaultLocalModel: workflow.modelPolicy.defaultLocalModel
+            defaultLocalModel: workflow.modelPolicy.defaultLocalModel,
+            outputContracts: workflow.outputs.contracts
         )
     }
 
@@ -72,6 +73,7 @@ private struct WorkflowDefinition: Decodable {
     let frontend: Frontend
     let runtime: Runtime
     let modelPolicy: ModelPolicy
+    let outputs: Outputs
 
     struct OperatingMode: Decodable {
         let humanInteraction: String
@@ -95,5 +97,22 @@ private struct WorkflowDefinition: Decodable {
 
     struct ModelPolicy: Decodable {
         let defaultLocalModel: String
+    }
+
+    struct Outputs: Decodable {
+        let primary: [OutputContract]
+        let structured: [OutputContract]
+        let review: [OutputContract]
+
+        var contracts: [WorkflowLaunchOutputContract] {
+            (primary + structured + review).map {
+                WorkflowLaunchOutputContract(id: $0.id, type: $0.type, required: true)
+            }
+        }
+    }
+
+    struct OutputContract: Decodable {
+        let id: String
+        let type: String
     }
 }

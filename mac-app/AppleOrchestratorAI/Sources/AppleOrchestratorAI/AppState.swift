@@ -261,6 +261,21 @@ final class AppState {
         )
     }
 
+    func outputPacket(for run: WorkflowRunRecord) -> WorkflowOutputPacket {
+        let contracts = workflows.first(where: { $0.id == run.workflowId })?.outputContracts ?? []
+        let eventOutputs = run.events.flatMap { $0.outputs ?? [] }
+        let items = contracts.map { contract in
+            WorkflowOutputPacketItem(
+                id: contract.id,
+                type: contract.type,
+                required: contract.required,
+                output: run.outputs.first { $0.id == contract.id },
+                eventOutput: eventOutputs.last { $0.id == contract.id }
+            )
+        }
+        return WorkflowOutputPacket(items: items)
+    }
+
     func explainWorkflow(_ workflow: WorkflowCatalogItem) {
         workflowExplanationStatus = "Asking Hermes to explain \(workflow.name)..."
 
@@ -657,6 +672,7 @@ final class AppState {
     }
 
     private func documentOnboardingLaunchPayload() -> WorkflowLaunchPayload {
+        let outputContracts = workflows.first(where: { $0.id == "document-onboarding" })?.outputContracts ?? []
         if let client = legalSourceSelection.client, let matter = legalSourceSelection.matter {
             return Self.documentOnboardingLaunchPayload(
                 launchMode: "legal-source-picker",
@@ -668,7 +684,8 @@ final class AppState {
                 documentLabels: legalSourceSelection.documents.map(\.label),
                 baseDirectory: nil,
                 filePaths: [],
-                sourceUris: []
+                sourceUris: [],
+                outputContracts: outputContracts
             )
         }
 
@@ -685,7 +702,8 @@ final class AppState {
             sourceUris: [
                 "file://test-fixtures/legal/document-onboarding/acme-renewal/engagement-letter.md",
                 "file://test-fixtures/legal/document-onboarding/acme-renewal/vendor-renewal-summary.md"
-            ]
+            ],
+            outputContracts: outputContracts
         )
     }
 
@@ -699,7 +717,8 @@ final class AppState {
         documentLabels: [String],
         baseDirectory: String?,
         filePaths: [String],
-        sourceUris: [String]
+        sourceUris: [String],
+        outputContracts: [WorkflowLaunchOutputContract]
     ) -> WorkflowLaunchPayload {
         WorkflowLaunchPayload(
             schemaVersion: "workflow.launch.v0",
@@ -725,15 +744,7 @@ final class AppState {
                 filePaths: filePaths,
                 sourceUris: sourceUris
             ),
-            outputContracts: [
-                WorkflowLaunchOutputContract(id: "response", type: "markdown", required: true),
-                WorkflowLaunchOutputContract(id: "document-onboarding-report", type: "export_document", required: true),
-                WorkflowLaunchOutputContract(id: "documentsMetadata", type: "json", required: true),
-                WorkflowLaunchOutputContract(id: "routingDecision", type: "json", required: true),
-                WorkflowLaunchOutputContract(id: "specialistOutputs", type: "json", required: true),
-                WorkflowLaunchOutputContract(id: "synthesis", type: "json", required: true),
-                WorkflowLaunchOutputContract(id: "reviewPayload", type: "json", required: true)
-            ],
+            outputContracts: outputContracts,
             instructions: [
                 "Resolve client, matter, and document references inside Hermes.",
                 "Do not let the frontend access source stores directly.",
