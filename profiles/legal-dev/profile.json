@@ -25,7 +25,6 @@
     "defaultRoute": "local",
     "defaultLocalModel": "qwen3.6:35b-a3b-nvfp4",
     "sovereignty": "local-first",
-    "costMode": "prepaid-local",
     "allowedRoutes": [
       "local",
       "ollama-cloud",

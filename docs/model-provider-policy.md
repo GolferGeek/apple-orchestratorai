@@ -77,32 +77,13 @@ When a workflow is `local-only`, Hermes must not ask the app for cloud credentia
 - ask the user to install/select a local model
 - fail with a clear explanation
 
-## Cost Modes
+## Cloud Route Consent
 
-The app should be explicit that local inference is not free; it is prepaid by hardware.
-
-Recommended cost modes:
-
-- `prepaid-local`: use the execution Mac and local Ollama; no per-token provider bill.
-- `metered-cloud`: provider charges accrue per token, per request, or subscription policy.
-- `hybrid`: start with prepaid local inference and escalate only with policy and user/organization consent.
-
-For local-first legal workflows, the default is `prepaid-local`. This is the product value: the user may have bought a high-RAM Mac, but repeated workflow attempts, source-picker reasoning, classification, synthesis, and drafting do not create a cloud token bill.
-
-The app should never describe local inference as free. The correct user-facing language is:
-
-- higher upfront hardware cost
-- near-zero marginal inference cost
-- better local control/privacy
-- slower or less capable than frontier cloud on some tasks
-- no surprise per-run token bill
-
-Cloud routes should show a visible cost/trust change before use:
+Cloud routes should show a visible trust and provider-cost change before use:
 
 ```json
 {
   "route": "claude-subscription",
-  "costMode": "metered-cloud",
   "requiresConsent": true,
   "reason": "The selected workflow allows cloud fallback, but this matter is not marked client-confidential."
 }
