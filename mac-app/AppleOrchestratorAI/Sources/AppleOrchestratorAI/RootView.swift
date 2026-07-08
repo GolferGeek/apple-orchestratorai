@@ -81,6 +81,10 @@ struct RootView: View {
                 PiView()
             case .runtime:
                 RuntimeView()
+            case .workflows:
+                WorkflowCatalogView()
+            case .runs:
+                WorkflowRunsView()
             }
         }
     }

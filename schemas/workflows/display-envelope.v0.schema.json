@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestratorai.local/schemas/workflows/display-envelope.v0.schema.json",
+  "title": "Workflow Display Envelope v0",
+  "type": "object",
+  "required": [
+    "status",
+    "workflowId",
+    "client",
+    "matter",
+    "stages",
+    "humanReviewRequired",
+    "markdownSummary",
+    "outputs"
+  ],
+  "properties": {
+    "status": {
+      "enum": ["completed", "needs_human_review", "failed"]
+    },
+    "workflowId": {
+      "type": "string"
+    },
+    "client": {
+      "$ref": "#/$defs/displayEntity"
+    },
+    "matter": {
+      "$ref": "#/$defs/displayEntity"
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/stage"
+      }
+    },
+    "humanReviewRequired": {
+      "type": "boolean"
+    },
+    "markdownSummary": {
+      "type": "string"
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/output"
+      }
+    }
+  },
+  "$defs": {
+    "displayEntity": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "stage": {
+      "type": "object",
+      "required": ["id", "name", "status", "summary"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "status": { "enum": ["defined", "running", "completed", "needs_human_review", "failed"] },
+        "summary": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "output": {
+      "type": "object",
+      "required": ["type", "title", "content"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "enum": ["markdown", "json", "file", "artifact"] },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "uri": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

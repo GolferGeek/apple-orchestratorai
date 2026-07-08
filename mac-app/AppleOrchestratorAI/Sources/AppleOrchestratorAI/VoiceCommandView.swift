@@ -112,6 +112,18 @@ struct VoiceCommandView: View {
             }
 
             Button {
+                appState.runQuickCommand("show workflows")
+            } label: {
+                Label("Workflows", systemImage: "list.bullet.rectangle")
+            }
+
+            Button {
+                appState.runQuickCommand("show runs")
+            } label: {
+                Label("Runs", systemImage: "waveform.path.ecg.rectangle")
+            }
+
+            Button {
                 appState.runQuickCommand("help")
             } label: {
                 Label("Help", systemImage: "questionmark.circle")

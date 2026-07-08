@@ -7,6 +7,7 @@ MODEL="${1:-qwen3.6:35b-a3b-nvfp4}"
 PROMPT="${SMOKE_PROMPT:-Reply with exactly: OK}"
 EXPECT_JSON="${SMOKE_EXPECT_JSON:-0}"
 POLL_COUNT="${SMOKE_POLL_COUNT:-90}"
+OUTPUT_FILE="${SMOKE_OUTPUT_FILE:-}"
 
 if [[ ! -f "${ENV_FILE}" ]]; then
   echo "Hermes is not bootstrapped yet. Run scripts/bootstrap-hermes.sh first." >&2
@@ -102,11 +103,13 @@ if [[ "${final_status}" != "completed" ]]; then
 fi
 
 if [[ "${EXPECT_JSON}" == "1" ]]; then
-  python3 - "${final_response}" <<'PY'
+  python3 - "${final_response}" "${OUTPUT_FILE}" <<'PY'
 import json
+from pathlib import Path
 import sys
 
 response = json.loads(sys.argv[1])
+output_file = sys.argv[2]
 output = response.get("output", "").strip()
 if output.startswith("```"):
     lines = output.splitlines()
@@ -142,6 +145,11 @@ for index, item in enumerate(outputs):
         raise SystemExit(f"Smoke run output item {index} must be an object")
     if not isinstance(item.get("content"), str):
         raise SystemExit(f"Smoke run output item {index} content must be a string")
+
+if output_file:
+    path = Path(output_file)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(parsed, indent=2) + "\n")
 
 print("json-ok: smoke output matched the workflow display envelope")
 PY

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestratorai.local/schemas/workflows/human-review.v0.schema.json",
+  "title": "Human Review Request v0",
+  "type": "object",
+  "required": ["id", "status", "title", "summary", "segments"],
+  "properties": {
+    "id": { "type": "string" },
+    "status": { "enum": ["requested", "approved", "changes_requested", "rejected", "cancelled"] },
+    "title": { "type": "string" },
+    "summary": { "type": "string" },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "status", "summary"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "status": { "enum": ["pending", "approved", "changes_requested", "rejected"] },
+          "decision": {
+            "type": ["string", "null"],
+            "enum": ["approve", "request_changes", "reject", null]
+          },
+          "summary": { "type": "string" },
+          "requestedChange": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "resumeAction": {
+      "type": "object",
+      "properties": {
+        "transport": { "enum": ["hermes-gateway"] },
+        "method": { "enum": ["POST"] },
+        "path": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

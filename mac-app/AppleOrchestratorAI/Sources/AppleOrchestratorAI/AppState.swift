@@ -13,8 +13,10 @@ final class AppState {
     var hermesOutput = ""
     var piOutput = ""
     var runtimeOutput = ""
+    var workflows: [WorkflowCatalogItem] = []
+    var workflowRuns: [WorkflowRunRecord] = []
     var voiceCommand = ""
-    var voicePrompt = "Tell me what workflow you want to build or run. Try: show workflows, check Hermes, check Pi, or help."
+    var voicePrompt = "Tell me what workflow you want to build or run. Try: show workflows, show runs, check Hermes, check Pi, or help."
     var voiceLines: [String] = [
         "App: Tell me what you want to do."
     ]
@@ -23,9 +25,12 @@ final class AppState {
 
     private let speechSynthesizer = AVSpeechSynthesizer()
     private let speechRecognizer = SpeechCommandRecognizer()
+    private let workflowCatalogStore = WorkflowCatalogStore()
+    private let workflowRunStore = WorkflowRunStore()
 
     init() {
         repoRoot = RepositoryLocator.findRepoRoot()
+        refreshLocalState()
     }
 
     func checkHermes() {
@@ -38,6 +43,11 @@ final class AppState {
 
     func checkRuntime() {
         runProbe(script: "scripts/check-mac-readiness.sh", target: .runtime)
+    }
+
+    func refreshLocalState() {
+        workflows = workflowCatalogStore.load(repoRoot: repoRoot)
+        workflowRuns = workflowRunStore.load(repoRoot: repoRoot)
     }
 
     func submitVoiceCommand() {
@@ -91,7 +101,15 @@ final class AppState {
         let normalized = command.lowercased()
 
         if normalized.contains("help") {
-            respond("You can say show workflows, check Hermes, check Pi, check runtime, open legal workflows, or go home.")
+            respond("You can say show workflows, show runs, check Hermes, check Pi, check runtime, open legal workflows, or go home.")
+        } else if normalized.contains("show workflows") || normalized.contains("list workflows") || normalized.contains("workflow catalog") {
+            refreshLocalState()
+            openModal(.workflows)
+            respond("Opening workflows.")
+        } else if normalized.contains("show runs") || normalized.contains("current run") || normalized.contains("workflow runs") || normalized.contains("show outputs") {
+            refreshLocalState()
+            openModal(.runs)
+            respond("Opening runs and outputs.")
         } else if normalized.contains("check hermes") || normalized.contains("probe hermes") {
             openModal(.hermes)
             checkHermes()
@@ -114,7 +132,9 @@ final class AppState {
             openModal(.pi)
             respond("Opening Pi.")
         } else if normalized.contains("legal") || normalized.contains("workflow") {
-            respond("The workflow catalog surface is next. For now, I can open advanced Hermes and Pi panels.")
+            refreshLocalState()
+            openModal(.workflows)
+            respond("Opening legal workflows.")
         } else if normalized.contains("home") || normalized.contains("voice") {
             selectedSection = .voice
             respond("Back to voice.")

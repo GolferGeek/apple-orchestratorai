@@ -39,6 +39,38 @@ Most workflows should produce a final output package. The package may contain on
 
 The database should also track intermediate output packages when they are reviewable, especially outputs tied to human tasks. A human task should be able to point to the exact output package being approved or changed.
 
+## V0 Run Record Contract
+
+The first implementation uses JSON records as the development stand-in for Apple-native persistence. The committed fixture lives at:
+
+```text
+test-fixtures/legal/document-onboarding/acme-renewal/run-completed.json
+```
+
+Runtime-generated records are written under:
+
+```text
+.runtime/apple-local-state/runs/
+.runtime/apple-local-state/display-envelopes/
+```
+
+These files are intentionally ignored by git. They model the rows that later move into Apple-native persistence.
+
+The canonical schemas are:
+
+- `schemas/workflows/workflow-run.v0.schema.json`
+- `schemas/workflows/human-review.v0.schema.json`
+- `schemas/workflows/display-envelope.v0.schema.json`
+
+The app reads run records and renders them with generic blocks:
+
+- run summary
+- stage timeline
+- human review block
+- output block
+
+Hermes should write the display envelope first, then the normalized run record. The run record preserves enough summary state for the UI to recover after reconnect. Raw Hermes event ids and event URIs can be added to the run record for audit/debugging.
+
 ## Segmented Human Tasks
 
 Some human tasks require decisions on multiple segments inside the same review package. The runtime state should support:
@@ -52,3 +84,26 @@ Some human tasks require decisions on multiple segments inside the same review p
 - final aggregate decision
 
 This supports workflows like contract review, discovery review, memo section approval, timeline approval, and fact extraction correction.
+
+## HITL Resume Contract
+
+Human review is represented as one `humanReview` object on the run record for v0. Each review has one or more segments. The app returns decisions by segment id:
+
+```json
+{
+  "reviewId": "human-review-acme-renewal-001",
+  "decisions": [
+    {
+      "segmentId": "contract",
+      "decision": "approve"
+    },
+    {
+      "segmentId": "privacy",
+      "decision": "request_changes",
+      "requestedChange": "Clarify whether operational data includes personal information."
+    }
+  ]
+}
+```
+
+For Hermes gateway runs, the preferred resume path remains a Hermes approval endpoint or gateway command. The app should still persist the local decision before sending the resume request so reconnects and audit remain coherent.

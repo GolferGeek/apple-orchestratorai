@@ -158,3 +158,33 @@ Do not fork Hermes just to create a second event system. Instead, add skills or 
 - workflow refinement proposals
 
 The app can render ordinary Hermes streaming text directly in the agent conversation surface, but workflow screens should prefer typed display envelopes and blocks.
+
+## V0 Files Added
+
+The first concrete contract files are now:
+
+- `schemas/workflows/display-envelope.v0.schema.json`
+- `schemas/workflows/workflow-run.v0.schema.json`
+- `schemas/workflows/human-review.v0.schema.json`
+- `test-fixtures/legal/document-onboarding/acme-renewal/run-completed.json`
+
+The Mac app renders those records through generic SwiftUI blocks:
+
+- workflow catalog cards
+- stage timeline blocks
+- human review segment blocks
+- output blocks
+
+This is still intentionally generic. Document onboarding does not get a bespoke result screen; it gets a workflow catalog entry and a run/output record that any workflow can use.
+
+## Document Onboarding Runner
+
+The current executable path is:
+
+```bash
+scripts/run-document-onboarding-workflow.sh
+```
+
+It calls Hermes through the local gateway, validates the display envelope, writes the envelope to `.runtime/apple-local-state/display-envelopes/`, and writes the normalized run record to `.runtime/apple-local-state/runs/`.
+
+That script is the bridge from the prompt-only fixture smoke test toward the real workflow runner. The next implementation step is to replace its compact prompt with a Hermes workflow skill call that performs the stage work and emits events incrementally.
