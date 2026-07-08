@@ -15,6 +15,9 @@ final class AppState {
     var runtimeOutput = ""
     var workflows: [WorkflowCatalogItem] = []
     var workflowRuns: [WorkflowRunRecord] = []
+    var liveHermesRunId = ""
+    var liveHermesEvents: [WorkflowRunEvent] = []
+    var hermesEventStreamStatus = "Not subscribed."
     var voiceCommand = ""
     var voicePrompt = "Tell me what workflow you want to build or run. Try: show workflows, show runs, check Hermes, check Pi, or help."
     var voiceLines: [String] = [
@@ -27,6 +30,8 @@ final class AppState {
     private let speechRecognizer = SpeechCommandRecognizer()
     private let workflowCatalogStore = WorkflowCatalogStore()
     private let workflowRunStore = WorkflowRunStore()
+    @ObservationIgnored private let hermesEventClient = HermesEventClient()
+    @ObservationIgnored private var hermesEventTask: Task<Void, Never>?
 
     init() {
         repoRoot = RepositoryLocator.findRepoRoot()
@@ -48,6 +53,52 @@ final class AppState {
     func refreshLocalState() {
         workflows = workflowCatalogStore.load(repoRoot: repoRoot)
         workflowRuns = workflowRunStore.load(repoRoot: repoRoot)
+    }
+
+    func subscribeToHermesRunEvents(runId: String) {
+        let trimmedRunId = runId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedRunId.isEmpty else {
+            hermesEventStreamStatus = "Enter a Hermes run id."
+            return
+        }
+
+        hermesEventTask?.cancel()
+        liveHermesRunId = trimmedRunId
+        liveHermesEvents = []
+        hermesEventStreamStatus = "Subscribing to \(trimmedRunId)..."
+
+        hermesEventTask = Task { [hermesEventClient] in
+            do {
+                try await hermesEventClient.streamEvents(runId: trimmedRunId) { event in
+                    await MainActor.run {
+                        self.liveHermesEvents.append(event)
+                        self.workflowRunStore.appendEvent(event, repoRoot: self.repoRoot)
+                        if let index = self.workflowRuns.firstIndex(where: { $0.id == event.runId }) {
+                            self.workflowRuns[index].events.append(event)
+                        }
+                        self.hermesEventStreamStatus = "Streaming \(trimmedRunId)"
+                    }
+                }
+
+                await MainActor.run {
+                    self.hermesEventStreamStatus = "Stream ended for \(trimmedRunId)."
+                }
+            } catch is CancellationError {
+                await MainActor.run {
+                    self.hermesEventStreamStatus = "Stream cancelled."
+                }
+            } catch {
+                await MainActor.run {
+                    self.hermesEventStreamStatus = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    func stopHermesEventStream() {
+        hermesEventTask?.cancel()
+        hermesEventTask = nil
+        hermesEventStreamStatus = "Stream stopped."
     }
 
     func submitVoiceCommand() {
@@ -106,7 +157,7 @@ final class AppState {
             refreshLocalState()
             openModal(.workflows)
             respond("Opening workflows.")
-        } else if normalized.contains("show runs") || normalized.contains("current run") || normalized.contains("workflow runs") || normalized.contains("show outputs") {
+        } else if normalized.contains("show runs") || normalized.contains("current run") || normalized.contains("workflow runs") || normalized.contains("show outputs") || normalized.contains("events") {
             refreshLocalState()
             openModal(.runs)
             respond("Opening runs and outputs.")
@@ -201,4 +252,5 @@ final class AppState {
             runtimeOutput = output
         }
     }
+
 }

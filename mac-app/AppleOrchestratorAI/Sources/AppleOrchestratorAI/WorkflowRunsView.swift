@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WorkflowRunsView: View {
     @Environment(AppState.self) private var appState
+    @State private var runIdToSubscribe = ""
 
     var body: some View {
         ScrollView {
@@ -17,6 +18,8 @@ struct WorkflowRunsView: View {
                     }
                 }
 
+                LiveHermesEventSubscriptionView(runIdToSubscribe: $runIdToSubscribe)
+
                 if appState.workflowRuns.isEmpty {
                     EmptyPanel(title: "No run records found", detail: "Hermes run records will appear here when written to Apple local persistence.")
                 } else {
@@ -27,6 +30,49 @@ struct WorkflowRunsView: View {
             }
             .padding(20)
         }
+    }
+}
+
+private struct LiveHermesEventSubscriptionView: View {
+    @Environment(AppState.self) private var appState
+    @Binding var runIdToSubscribe: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Live Hermes Events")
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                StatusBadge(text: appState.hermesEventStreamStatus)
+            }
+
+            HStack {
+                TextField("Hermes run id", text: $runIdToSubscribe)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit {
+                        appState.subscribeToHermesRunEvents(runId: runIdToSubscribe)
+                    }
+
+                Button {
+                    appState.subscribeToHermesRunEvents(runId: runIdToSubscribe)
+                } label: {
+                    Label("Subscribe", systemImage: "dot.radiowaves.left.and.right")
+                }
+
+                Button {
+                    appState.stopHermesEventStream()
+                } label: {
+                    Label("Stop", systemImage: "stop.circle")
+                }
+            }
+
+            if !appState.liveHermesEvents.isEmpty {
+                EventStreamBlock(events: appState.liveHermesEvents)
+            }
+        }
+        .padding(12)
+        .background(.orange.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 

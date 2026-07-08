@@ -61,4 +61,31 @@ struct WorkflowRunStore {
                 return try? decoder.decode(WorkflowRunEvent.self, from: lineData)
             }
     }
+
+    func appendEvent(_ event: WorkflowRunEvent, repoRoot: URL?) {
+        guard let repoRoot else { return }
+
+        let eventsRoot = repoRoot.appending(path: ".runtime/apple-local-state/events", directoryHint: .isDirectory)
+        let url = eventsRoot.appending(path: "\(event.runId).jsonl")
+        let fileManager = FileManager.default
+        try? fileManager.createDirectory(at: eventsRoot, withIntermediateDirectories: true)
+
+        guard let data = try? JSONEncoder().encode(event), let line = String(data: data, encoding: .utf8) else {
+            return
+        }
+
+        if !fileManager.fileExists(atPath: url.path) {
+            fileManager.createFile(atPath: url.path, contents: nil)
+        }
+
+        guard let handle = try? FileHandle(forWritingTo: url) else {
+            return
+        }
+
+        defer { try? handle.close() }
+        _ = try? handle.seekToEnd()
+        if let lineData = (line + "\n").data(using: .utf8) {
+            try? handle.write(contentsOf: lineData)
+        }
+    }
 }

@@ -144,7 +144,7 @@ struct OutputEnvelope: Identifiable, Decodable, Equatable {
     let content: String
 }
 
-struct WorkflowRunEvent: Identifiable, Decodable, Equatable {
+struct WorkflowRunEvent: Identifiable, Codable, Equatable {
     var id: String {
         "\(timestamp)-\(type)-\(stageId ?? reviewId ?? rawHermesRunId ?? runId)"
     }
@@ -156,4 +156,22 @@ struct WorkflowRunEvent: Identifiable, Decodable, Equatable {
     let stageId: String?
     let reviewId: String?
     let rawHermesRunId: String?
+
+    init(
+        timestamp: String,
+        type: String,
+        runId: String,
+        workflowId: String? = nil,
+        stageId: String? = nil,
+        reviewId: String? = nil,
+        rawHermesRunId: String? = nil
+    ) {
+        self.timestamp = timestamp
+        self.type = type
+        self.runId = runId
+        self.workflowId = workflowId
+        self.stageId = stageId
+        self.reviewId = reviewId
+        self.rawHermesRunId = rawHermesRunId
+    }
 }
