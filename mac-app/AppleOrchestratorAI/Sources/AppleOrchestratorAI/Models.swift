@@ -82,6 +82,45 @@ struct WorkflowCatalogItem: Identifiable, Decodable, Equatable {
     let defaultLocalModel: String
 }
 
+struct WorkflowExecutionPlan: Identifiable, Decodable, Equatable {
+    var id: String { workflowId }
+
+    let schemaVersion: String
+    let kind: String
+    let workflowId: String
+    let profileId: String
+    let mode: String
+    let sourceWorkflow: String?
+    let stages: [WorkflowExecutionStage]
+    let humanCheckpoints: [WorkflowHumanCheckpoint]
+}
+
+struct WorkflowExecutionStage: Identifiable, Decodable, Equatable {
+    let id: String
+    let name: String
+    let graphId: String
+    let subgraphId: String?
+    let execution: String
+    let workUnits: [WorkflowExecutionWorkUnit]
+}
+
+struct WorkflowExecutionWorkUnit: Identifiable, Decodable, Equatable {
+    let id: String
+    let name: String
+    let skillId: String
+    let inputs: [String]
+    let outputs: [String]
+    let optional: Bool?
+    let emits: [String]?
+}
+
+struct WorkflowHumanCheckpoint: Identifiable, Decodable, Equatable {
+    let id: String
+    let stageId: String
+    let reviewMode: String
+    let allowedDecisions: [String]
+}
+
 struct WorkflowRunRecord: Identifiable, Codable, Equatable {
     let id: String
     let workflowId: String

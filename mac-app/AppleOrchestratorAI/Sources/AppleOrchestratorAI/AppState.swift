@@ -14,6 +14,7 @@ final class AppState {
     var piOutput = ""
     var runtimeOutput = ""
     var workflows: [WorkflowCatalogItem] = []
+    var workflowExecutionPlans: [String: WorkflowExecutionPlan] = [:]
     var workflowRuns: [WorkflowRunRecord] = []
     var liveHermesRunId = ""
     var liveHermesEvents: [WorkflowRunEvent] = []
@@ -62,6 +63,7 @@ final class AppState {
 
     func refreshLocalState() {
         workflows = workflowCatalogStore.load(repoRoot: repoRoot)
+        workflowExecutionPlans = workflowCatalogStore.loadExecutionPlans(repoRoot: repoRoot)
         workflowRuns = workflowRunStore.load(repoRoot: repoRoot)
     }
 
@@ -178,6 +180,40 @@ final class AppState {
                 statusMessage = error.localizedDescription
                 respond("I could not start document onboarding: \(error.localizedDescription)")
             }
+        }
+    }
+
+    func runDocumentOnboardingDryRun() {
+        guard let repoRoot else {
+            statusMessage = "Could not locate repository root."
+            return
+        }
+
+        openModal(.runs)
+        statusMessage = "Running document onboarding dry run..."
+
+        Task {
+            let output = await Task.detached(priority: .userInitiated) {
+                do {
+                    let result = try Shell.run(
+                        "/bin/bash",
+                        ["scripts/run-document-onboarding-workflow.sh"],
+                        cwd: repoRoot,
+                        environment: [
+                            "DRY_RUN": "1",
+                            "RUN_ID": "run-dry-\(Self.runTimestamp())"
+                        ]
+                    )
+                    return result.output.isEmpty ? "Exit code: \(result.exitCode)" : result.output
+                } catch {
+                    return error.localizedDescription
+                }
+            }.value
+
+            runtimeOutput = output
+            refreshLocalState()
+            statusMessage = "Document onboarding dry run finished."
+            respond("The document onboarding dry run finished.")
         }
     }
 
@@ -691,6 +727,13 @@ final class AppState {
 
     private static func isoTimestamp() -> String {
         ISO8601DateFormatter().string(from: Date())
+    }
+
+    nonisolated private static func runTimestamp() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMddHHmmss"
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter.string(from: Date())
     }
 
 }

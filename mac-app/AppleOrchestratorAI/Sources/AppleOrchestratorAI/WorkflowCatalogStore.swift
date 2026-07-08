@@ -16,6 +16,22 @@ struct WorkflowCatalogStore {
             .sorted { $0.name < $1.name }
     }
 
+    func loadExecutionPlans(repoRoot: URL?) -> [String: WorkflowExecutionPlan] {
+        guard let repoRoot else { return [:] }
+        let workflowRoot = repoRoot.appending(path: "workflows", directoryHint: .isDirectory)
+        let fileManager = FileManager.default
+        guard let enumerator = fileManager.enumerator(at: workflowRoot, includingPropertiesForKeys: nil) else {
+            return [:]
+        }
+
+        let plans = enumerator
+            .compactMap { $0 as? URL }
+            .filter { $0.lastPathComponent.hasSuffix(".execution-plan.json") }
+            .compactMap(loadExecutionPlan)
+
+        return Dictionary(uniqueKeysWithValues: plans.map { ($0.workflowId, $0) })
+    }
+
     private func loadWorkflow(from url: URL) -> WorkflowCatalogItem? {
         guard
             let data = try? Data(contentsOf: url),
@@ -35,6 +51,14 @@ struct WorkflowCatalogStore {
             humanInteraction: workflow.operatingMode.humanInteraction,
             defaultLocalModel: workflow.modelPolicy.defaultLocalModel
         )
+    }
+
+    private func loadExecutionPlan(from url: URL) -> WorkflowExecutionPlan? {
+        guard let data = try? Data(contentsOf: url) else {
+            return nil
+        }
+
+        return try? JSONDecoder().decode(WorkflowExecutionPlan.self, from: data)
     }
 }
 

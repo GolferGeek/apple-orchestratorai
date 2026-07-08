@@ -1,11 +1,14 @@
 import Foundation
 
 enum Shell {
-    static func run(_ executable: String, _ arguments: [String], cwd: URL) throws -> CommandResult {
+    static func run(_ executable: String, _ arguments: [String], cwd: URL, environment: [String: String] = [:]) throws -> CommandResult {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: executable)
         process.arguments = arguments
         process.currentDirectoryURL = cwd
+        if !environment.isEmpty {
+            process.environment = ProcessInfo.processInfo.environment.merging(environment) { _, new in new }
+        }
 
         let pipe = Pipe()
         process.standardOutput = pipe
