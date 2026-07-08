@@ -188,3 +188,16 @@ scripts/run-document-onboarding-workflow.sh
 It calls Hermes through the local gateway once per workflow stage, writes stage results to `.runtime/apple-local-state/stage-results/`, appends JSONL events to `.runtime/apple-local-state/events/`, writes the final envelope to `.runtime/apple-local-state/display-envelopes/`, and writes the normalized run record to `.runtime/apple-local-state/runs/`.
 
 That script is the bridge from the prompt-only fixture smoke test toward the real workflow runner. The next implementation step is to replace each compact stage prompt with the corresponding Hermes workflow skill implementation while preserving the same event and persistence contract.
+
+## Native App Run Start
+
+The Mac app now has the first native run-start path:
+
+1. The user says "run document onboarding" or presses **Run Document Onboarding** in the workflow catalog.
+2. `HermesRunClient` calls `POST /v1/runs`.
+3. The returned Hermes `run_id` creates an in-memory `WorkflowRunRecord`.
+4. The run record is mirrored to `.runtime/apple-local-state/runs/`.
+5. `HermesEventClient` immediately subscribes to `GET /v1/runs/{run_id}/events`.
+6. Incoming events update `AppState` and are mirrored to `.runtime/apple-local-state/events/{run_id}.jsonl`.
+
+This keeps Hermes as the event source and SwiftUI as the reactive renderer. The local state files remain the recovery/audit mirror.

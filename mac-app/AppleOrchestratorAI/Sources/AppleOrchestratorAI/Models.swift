@@ -77,19 +77,19 @@ struct WorkflowCatalogItem: Identifiable, Decodable, Equatable {
     let defaultLocalModel: String
 }
 
-struct WorkflowRunRecord: Identifiable, Decodable, Equatable {
+struct WorkflowRunRecord: Identifiable, Codable, Equatable {
     let id: String
     let workflowId: String
     let workflowName: String
-    let status: String
+    var status: String
     let profileId: String
     let startedAt: String
-    let completedAt: String?
+    var completedAt: String?
     let client: DisplayEntity
     let matter: DisplayEntity
-    let stages: [WorkflowStageRecord]
-    let humanReview: HumanReviewRecord?
-    let outputs: [OutputEnvelope]
+    var stages: [WorkflowStageRecord]
+    var humanReview: HumanReviewRecord?
+    var outputs: [OutputEnvelope]
     var events: [WorkflowRunEvent] = []
 
     enum CodingKeys: String, CodingKey {
@@ -109,19 +109,19 @@ struct WorkflowRunRecord: Identifiable, Decodable, Equatable {
     }
 }
 
-struct DisplayEntity: Decodable, Equatable {
+struct DisplayEntity: Codable, Equatable {
     let id: String
     let name: String
 }
 
-struct WorkflowStageRecord: Identifiable, Decodable, Equatable {
+struct WorkflowStageRecord: Identifiable, Codable, Equatable {
     let id: String
     let name: String
-    let status: String
-    let summary: String
+    var status: String
+    var summary: String
 }
 
-struct HumanReviewRecord: Decodable, Equatable {
+struct HumanReviewRecord: Codable, Equatable {
     let id: String
     let status: String
     let title: String
@@ -129,7 +129,7 @@ struct HumanReviewRecord: Decodable, Equatable {
     let segments: [HumanReviewSegment]
 }
 
-struct HumanReviewSegment: Identifiable, Decodable, Equatable {
+struct HumanReviewSegment: Identifiable, Codable, Equatable {
     let id: String
     let label: String
     let status: String
@@ -137,7 +137,7 @@ struct HumanReviewSegment: Identifiable, Decodable, Equatable {
     let summary: String
 }
 
-struct OutputEnvelope: Identifiable, Decodable, Equatable {
+struct OutputEnvelope: Identifiable, Codable, Equatable {
     let id: String
     let type: String
     let title: String

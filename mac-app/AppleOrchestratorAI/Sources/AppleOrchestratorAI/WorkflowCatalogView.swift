@@ -31,6 +31,7 @@ struct WorkflowCatalogView: View {
 }
 
 private struct WorkflowCatalogCard: View {
+    @Environment(AppState.self) private var appState
     let workflow: WorkflowCatalogItem
 
     var body: some View {
@@ -44,6 +45,15 @@ private struct WorkflowCatalogCard: View {
                 }
                 Spacer()
                 StatusBadge(text: workflow.status)
+            }
+
+            if workflow.id == "document-onboarding" {
+                Button {
+                    appState.startDocumentOnboardingRun()
+                } label: {
+                    Label("Run Document Onboarding", systemImage: "play.circle.fill")
+                }
+                .buttonStyle(.borderedProminent)
             }
 
             LabeledContent("Domain", value: workflow.domain)

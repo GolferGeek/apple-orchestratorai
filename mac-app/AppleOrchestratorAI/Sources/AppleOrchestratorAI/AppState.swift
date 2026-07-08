@@ -30,6 +30,7 @@ final class AppState {
     private let speechRecognizer = SpeechCommandRecognizer()
     private let workflowCatalogStore = WorkflowCatalogStore()
     private let workflowRunStore = WorkflowRunStore()
+    @ObservationIgnored private let hermesRunClient = HermesRunClient()
     @ObservationIgnored private let hermesEventClient = HermesEventClient()
     @ObservationIgnored private var hermesEventTask: Task<Void, Never>?
 
@@ -73,9 +74,7 @@ final class AppState {
                     await MainActor.run {
                         self.liveHermesEvents.append(event)
                         self.workflowRunStore.appendEvent(event, repoRoot: self.repoRoot)
-                        if let index = self.workflowRuns.firstIndex(where: { $0.id == event.runId }) {
-                            self.workflowRuns[index].events.append(event)
-                        }
+                        self.applyHermesEvent(event)
                         self.hermesEventStreamStatus = "Streaming \(trimmedRunId)"
                     }
                 }
@@ -99,6 +98,31 @@ final class AppState {
         hermesEventTask?.cancel()
         hermesEventTask = nil
         hermesEventStreamStatus = "Stream stopped."
+    }
+
+    func startDocumentOnboardingRun() {
+        openModal(.runs)
+        statusMessage = "Starting document onboarding..."
+
+        Task {
+            do {
+                let response = try await hermesRunClient.startRun(
+                    input: Self.documentOnboardingPrompt(),
+                    model: "qwen3.6:35b-a3b-nvfp4",
+                    sessionId: "apple-orchestratorai-document-onboarding"
+                )
+
+                let run = Self.initialDocumentOnboardingRun(runId: response.runId, status: response.status)
+                workflowRuns.insert(run, at: 0)
+                workflowRunStore.saveRun(run, repoRoot: repoRoot)
+                statusMessage = "Started \(response.runId)"
+                respond("Started document onboarding. I am subscribing to events.")
+                subscribeToHermesRunEvents(runId: response.runId)
+            } catch {
+                statusMessage = error.localizedDescription
+                respond("I could not start document onboarding: \(error.localizedDescription)")
+            }
+        }
     }
 
     func submitVoiceCommand() {
@@ -157,6 +181,8 @@ final class AppState {
             refreshLocalState()
             openModal(.workflows)
             respond("Opening workflows.")
+        } else if normalized.contains("run document onboarding") || normalized.contains("start document onboarding") {
+            startDocumentOnboardingRun()
         } else if normalized.contains("show runs") || normalized.contains("current run") || normalized.contains("workflow runs") || normalized.contains("show outputs") || normalized.contains("events") {
             refreshLocalState()
             openModal(.runs)
@@ -251,6 +277,93 @@ final class AppState {
         case .runtime:
             runtimeOutput = output
         }
+    }
+
+    private func applyHermesEvent(_ event: WorkflowRunEvent) {
+        guard let index = workflowRuns.firstIndex(where: { $0.id == event.runId }) else {
+            return
+        }
+
+        workflowRuns[index].events.append(event)
+
+        switch event.type {
+        case "run.completed", "completed":
+            workflowRuns[index].status = "completed"
+            workflowRuns[index].completedAt = Self.isoTimestamp()
+            if workflowRuns[index].outputs.isEmpty {
+                workflowRuns[index].outputs = [
+                    OutputEnvelope(
+                        id: "output-summary",
+                        type: "markdown",
+                        title: "Run Completed",
+                        content: "Hermes reported the run completed."
+                    )
+                ]
+            }
+        case "run.failed", "failed":
+            workflowRuns[index].status = "failed"
+            workflowRuns[index].completedAt = Self.isoTimestamp()
+        case "approval.request":
+            workflowRuns[index].status = "waiting_for_human"
+            workflowRuns[index].humanReview = HumanReviewRecord(
+                id: event.reviewId ?? "approval-\(event.runId)",
+                status: "requested",
+                title: "Human Approval Requested",
+                summary: "Hermes requested human approval.",
+                segments: [
+                    HumanReviewSegment(
+                        id: "approval",
+                        label: "Approval",
+                        status: "pending",
+                        decision: nil,
+                        summary: "Review the Hermes approval request."
+                    )
+                ]
+            )
+        default:
+            if event.type.hasPrefix("run.") || event.type.hasPrefix("message.") {
+                workflowRuns[index].status = "running"
+            }
+        }
+
+        workflowRunStore.saveRun(workflowRuns[index], repoRoot: repoRoot)
+    }
+
+    private static func documentOnboardingPrompt() -> String {
+        """
+        Run the Apple Orchestrator AI document-onboarding workflow in local-only demo mode.
+        Use the Acme Robotics LLC / Vendor Agreement Renewal fixture.
+        Return concise progress and final output. Do not call external model providers.
+        """
+    }
+
+    private static func initialDocumentOnboardingRun(runId: String, status: String) -> WorkflowRunRecord {
+        WorkflowRunRecord(
+            id: runId,
+            workflowId: "document-onboarding",
+            workflowName: "Document Onboarding",
+            status: status == "started" ? "running" : status,
+            profileId: "legal-dev",
+            startedAt: isoTimestamp(),
+            completedAt: nil,
+            client: DisplayEntity(id: "client-acme-robotics", name: "Acme Robotics LLC"),
+            matter: DisplayEntity(id: "matter-vendor-renewal-2026", name: "Vendor Agreement Renewal"),
+            stages: ["metadata", "classify", "specialists", "synthesis", "hitl_review", "report"].map {
+                WorkflowStageRecord(
+                    id: $0,
+                    name: $0.replacingOccurrences(of: "_", with: " ").capitalized,
+                    status: "defined",
+                    summary: "Waiting for Hermes events."
+                )
+            },
+            humanReview: nil,
+            outputs: [],
+            events: []
+        )
+    }
+
+    private static func isoTimestamp() -> String {
+        ISO8601DateFormatter().string(from: Date())
     }
 
 }

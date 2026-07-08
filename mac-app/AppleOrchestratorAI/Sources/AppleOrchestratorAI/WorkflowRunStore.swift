@@ -88,4 +88,18 @@ struct WorkflowRunStore {
             try? handle.write(contentsOf: lineData)
         }
     }
+
+    func saveRun(_ run: WorkflowRunRecord, repoRoot: URL?) {
+        guard let repoRoot else { return }
+
+        let runsRoot = repoRoot.appending(path: ".runtime/apple-local-state/runs", directoryHint: .isDirectory)
+        let url = runsRoot.appending(path: "\(run.id).json")
+        try? FileManager.default.createDirectory(at: runsRoot, withIntermediateDirectories: true)
+
+        guard let data = try? JSONEncoder().encode(run) else {
+            return
+        }
+
+        try? data.write(to: url, options: [.atomic])
+    }
 }

@@ -118,6 +118,12 @@ struct VoiceCommandView: View {
             }
 
             Button {
+                appState.runQuickCommand("run document onboarding")
+            } label: {
+                Label("Run Onboarding", systemImage: "play.circle")
+            }
+
+            Button {
                 appState.runQuickCommand("show runs")
             } label: {
                 Label("Runs", systemImage: "waveform.path.ecg.rectangle")
