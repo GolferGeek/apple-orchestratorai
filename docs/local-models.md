@@ -35,9 +35,9 @@ The exact model names should remain configurable, but the classes matter:
 - tool-heavy/coding model
 - embedding model if local retrieval/indexing is needed
 
-## MLX Direction
+## Apple-Optimized Direction
 
-Ollama's MLX support on Apple Silicon should be preferred where available because this product is Mac-first.
+Ollama's Apple Silicon optimized model paths should be preferred where available because this product is Mac-first. The actual tag names matter: the installed Qwen models use explicit `nvfp4` tags, and the installed Gemma models use explicit `-mlx` tags.
 
 The development baseline is:
 
@@ -45,7 +45,7 @@ The development baseline is:
 Ollama >= 0.31.1
 ```
 
-This matters because Ollama 0.31.1 includes the faster Gemma 4 MLX path on Apple Silicon and updated MLX engine support. Older versions may run some MLX models, but they should not be treated as the supported baseline for this project.
+This matters because Ollama 0.31.1 includes the faster Gemma 4 MLX path on Apple Silicon and updated local engine support. Older versions may run some models, but they should not be treated as the supported baseline for this project.
 
 Local scripts:
 
@@ -56,7 +56,7 @@ scripts/start-ollama-mlx.sh
 scripts/pull-mlx-models.sh core
 ```
 
-By default, `scripts/upgrade-ollama-macos.sh` installs a project-local Ollama app under `.runtime/ollama/Ollama.app` and runs it on `127.0.0.1:11435`. This avoids replacing the user's global `/Applications/Ollama.app`.
+By default, this app should use the shared Apple AI runtime on `127.0.0.1:11435`, currently rooted at `/Users/golfergeek/projects/golfergeek/apple-ai-runtime`. That keeps this app, the assistant app, and future Apple-local tooling on one modern Ollama server instead of duplicating model stores.
 
 To replace the global app instead, run:
 
@@ -66,38 +66,37 @@ INSTALL_SCOPE=app scripts/upgrade-ollama-macos.sh
 
 If the app-scope install reports that `/Applications` is not writable, use the official Ollama updater or rerun the script with permissions that can replace `/Applications/Ollama.app`.
 
-Recommended default MLX model set:
+Recommended default Apple-optimized model set:
 
 ```text
+qwen3.6:35b-a3b-nvfp4
+qwen3.6:35b-a3b-coding-nvfp4
 gemma4:e2b-mlx
 gemma4:e4b-mlx
-gemma4:12b-mlx
-qwen3.6:27b-mlx
 ```
 
 Use cases:
 
-- `gemma4:e2b-mlx`: very fast smoke tests, lightweight routing, simple classification.
+- `qwen3.6:35b-a3b-nvfp4`: strong local legal/workflow reasoning default.
+- `qwen3.6:35b-a3b-coding-nvfp4`: coding, repository reasoning, workflow-building, and tool-heavy tasks.
 - `gemma4:e4b-mlx`: fast local assistant, smaller workflow steps, inexpensive iteration.
-- `gemma4:12b-mlx`: default local reasoning model for early workflows.
-- `qwen3.6:27b-mlx`: agentic coding, repository reasoning, workflow-building, and complex Hermes execution.
+- `gemma4:e2b-mlx`: very fast smoke tests, lightweight routing, simple classification.
 
 Optional workstation tier:
 
 ```text
-gemma4:26b-mlx
+deepseek-r1:70b
 ```
 
 Optional full tier:
 
 ```text
+qwen3.6:35b-a3b-nvfp4
+qwen3.6:35b-a3b-coding-nvfp4
 gemma4:e2b-mlx
 gemma4:e4b-mlx
-gemma4:12b-mlx
-gemma4:26b-mlx
-gemma4:31b-mlx
-qwen3.6:27b-mlx
-qwen3.6:35b-mlx
+deepseek-r1:70b
+gpt-oss:20b
 ```
 
 Do not make the full tier the default. It is large and should be a conscious install choice.

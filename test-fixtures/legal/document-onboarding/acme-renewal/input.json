@@ -1,0 +1,36 @@
+{
+  "workflowId": "document-onboarding",
+  "profileId": "legal-dev",
+  "classification": "demo-or-public",
+  "fileSystemDocuments": {
+    "clientId": "client-acme-robotics",
+    "clientSlug": "acme-robotics",
+    "matterId": "matter-vendor-renewal-2026",
+    "matterSlug": "vendor-renewal-2026",
+    "baseDirectory": "test-fixtures/legal/document-onboarding/acme-renewal",
+    "filePaths": [
+      "engagement-letter.md",
+      "vendor-renewal-summary.md"
+    ],
+    "sourceUris": [
+      "file://test-fixtures/legal/document-onboarding/acme-renewal/engagement-letter.md",
+      "file://test-fixtures/legal/document-onboarding/acme-renewal/vendor-renewal-summary.md"
+    ]
+  },
+  "client": {
+    "id": "client-acme-robotics",
+    "slug": "acme-robotics",
+    "name": "Acme Robotics LLC",
+    "clientType": "company",
+    "industry": "robotics"
+  },
+  "matter": {
+    "id": "matter-vendor-renewal-2026",
+    "slug": "vendor-renewal-2026",
+    "name": "Vendor Agreement Renewal",
+    "matterType": "commercial-contract",
+    "status": "test",
+    "jurisdiction": "Illinois"
+  },
+  "reviewInstructions": "Run a local-only document onboarding review. Focus on contract, privacy, compliance, and litigation/arbitration issues."
+}

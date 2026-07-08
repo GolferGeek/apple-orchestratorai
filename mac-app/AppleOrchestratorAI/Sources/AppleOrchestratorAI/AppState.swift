@@ -12,6 +12,7 @@ final class AppState {
     var statusMessage = "Ready"
     var hermesOutput = ""
     var piOutput = ""
+    var runtimeOutput = ""
     var voiceCommand = ""
     var voicePrompt = "Tell me what workflow you want to build or run. Try: show workflows, check Hermes, check Pi, or help."
     var voiceLines: [String] = [
@@ -33,6 +34,10 @@ final class AppState {
 
     func checkPi() {
         runProbe(script: "scripts/probe-pi.sh", target: .pi)
+    }
+
+    func checkRuntime() {
+        runProbe(script: "scripts/check-mac-readiness.sh", target: .runtime)
     }
 
     func submitVoiceCommand() {
@@ -86,7 +91,7 @@ final class AppState {
         let normalized = command.lowercased()
 
         if normalized.contains("help") {
-            respond("You can say show workflows, check Hermes, check Pi, open legal workflows, or go home.")
+            respond("You can say show workflows, check Hermes, check Pi, check runtime, open legal workflows, or go home.")
         } else if normalized.contains("check hermes") || normalized.contains("probe hermes") {
             openModal(.hermes)
             checkHermes()
@@ -98,6 +103,13 @@ final class AppState {
             openModal(.pi)
             checkPi()
             respond("Checking Pi.")
+        } else if normalized.contains("check runtime") || normalized.contains("check ollama") || normalized.contains("probe runtime") || normalized.contains("probe ollama") {
+            openModal(.runtime)
+            checkRuntime()
+            respond("Checking runtime.")
+        } else if normalized.contains("runtime") || normalized.contains("ollama") {
+            openModal(.runtime)
+            respond("Opening runtime.")
         } else if normalized == "pi" || normalized.contains("open pi") || normalized.contains("show pi") {
             openModal(.pi)
             respond("Opening Pi.")
@@ -136,6 +148,7 @@ final class AppState {
     private enum ProbeTarget {
         case hermes
         case pi
+        case runtime
     }
 
     private func runProbe(script: String, target: ProbeTarget) {
@@ -164,6 +177,8 @@ final class AppState {
             hermesOutput = output
         case .pi:
             piOutput = output
+        case .runtime:
+            runtimeOutput = output
         }
     }
 }

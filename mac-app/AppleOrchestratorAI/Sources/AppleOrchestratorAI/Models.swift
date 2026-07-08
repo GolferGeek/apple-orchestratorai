@@ -23,6 +23,7 @@ enum AppSection: String, CaseIterable, Identifiable {
 enum ModalSurface: String, Identifiable {
     case hermes
     case pi
+    case runtime
 
     var id: String { rawValue }
 
@@ -32,6 +33,8 @@ enum ModalSurface: String, Identifiable {
             "Hermes"
         case .pi:
             "Pi"
+        case .runtime:
+            "Runtime"
         }
     }
 
@@ -41,6 +44,8 @@ enum ModalSurface: String, Identifiable {
             "bolt.horizontal"
         case .pi:
             "terminal"
+        case .runtime:
+            "cpu"
         }
     }
 }

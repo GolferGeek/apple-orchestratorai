@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "legal.workflow.document-onboarding.v0",
+  "name": "Document Onboarding Workflow",
+  "namespace": "legal.workflow",
+  "status": "dev",
+  "summary": "Compose shared file skills and legal shared skills into the document onboarding workflow.",
+  "workflowDefinition": "workflows/legal/document-onboarding.workflow.json",
+  "profile": "legal-dev",
+  "inputs": {
+    "legalSourceSelection": "object?",
+    "fileSystemDocuments": "object?",
+    "manualUpload": "file_set?",
+    "reviewInstructions": "markdown?"
+  },
+  "outputs": {
+    "response": "markdown",
+    "documentOnboardingReport": "markdown|docx|pdf",
+    "documentsMetadata": "json",
+    "routingDecision": "json",
+    "specialistOutputs": "json",
+    "synthesis": "json",
+    "reviewPayload": "json"
+  },
+  "stages": [
+    {
+      "id": "metadata",
+      "skills": [
+        "legal.shared.apple-store-resolve-client-matter.v0",
+        "shared.local-file-resolve-documents.v0",
+        "shared.text-extract.v0",
+        "legal.shared.extract-document-metadata.v0"
+      ]
+    },
+    {
+      "id": "classify",
+      "skills": [
+        "legal.shared.clo-route-specialists.v0"
+      ]
+    },
+    {
+      "id": "specialists",
+      "skills": [
+        "legal.shared.specialist-review.v0"
+      ]
+    },
+    {
+      "id": "synthesis",
+      "skills": [
+        "legal.workflow.document-onboarding.synthesize-findings.v0",
+        "legal.workflow.document-onboarding.recommend-next-workflow.v0"
+      ]
+    },
+    {
+      "id": "hitl_review",
+      "skills": [
+        "workflow.request-human-review.v0",
+        "workflow.apply-human-review-decision.v0"
+      ]
+    },
+    {
+      "id": "report",
+      "skills": [
+        "workflow.render-output-packet.v0",
+        "workflow.export-document.v0"
+      ]
+    }
+  ],
+  "displayEvents": [
+    "workflow.started",
+    "stage.started",
+    "work_unit.completed",
+    "human_review.requested",
+    "workflow.completed",
+    "workflow.failed"
+  ]
+}

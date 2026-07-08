@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "legal.shared.extract-document-metadata.v0",
+  "name": "Extract Legal Document Metadata",
+  "namespace": "legal.shared",
+  "status": "dev",
+  "summary": "Extract legal metadata needed for routing and specialist review.",
+  "inputs": {
+    "documentsText": "shared.text-extract.v0.outputs.documentsText",
+    "client": "object?",
+    "matter": "object?"
+  },
+  "outputs": {
+    "documentsMetadata": [
+      {
+        "documentId": "string",
+        "documentType": "string",
+        "documentDate": "string?",
+        "parties": "object[]",
+        "keyTerms": "object[]",
+        "sections": "object[]",
+        "signatures": "object[]",
+        "confidence": "number",
+        "warnings": "string[]"
+      }
+    ]
+  },
+  "composedOf": [
+    "legal.shared.classify-document-type.v0",
+    "legal.shared.detect-sections.v0",
+    "legal.shared.detect-signatures.v0",
+    "legal.shared.extract-dates.v0",
+    "legal.shared.extract-parties.v0"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "legal.shared.apple-store-resolve-client-matter.v0",
+  "name": "Resolve Client And Matter",
+  "namespace": "legal.shared",
+  "status": "dev",
+  "summary": "Resolve client and matter context from Apple local persistence or a caller-provided context snapshot.",
+  "inputs": {
+    "clientId": "string?",
+    "clientSlug": "string?",
+    "matterId": "string?",
+    "matterSlug": "string?",
+    "providedClient": "object?",
+    "providedMatter": "object?"
+  },
+  "outputs": {
+    "client": {
+      "id": "string",
+      "slug": "string",
+      "name": "string",
+      "clientType": "string?",
+      "industry": "string?"
+    },
+    "matter": {
+      "id": "string",
+      "slug": "string",
+      "name": "string",
+      "matterType": "string?",
+      "status": "string?",
+      "jurisdiction": "string?"
+    },
+    "warnings": "string[]"
+  },
+  "guardrails": [
+    "Never infer client identity from document text alone.",
+    "When identifiers conflict, request human review."
+  ]
+}

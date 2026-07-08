@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "hermes.profile.v0",
+  "id": "legal-dev",
+  "name": "Legal Dev",
+  "status": "active",
+  "mission": "Develop and run local-first legal workflows using reusable legal shared skills, workflow-specific skills, Apple local persistence, and explicit human review.",
+  "capabilities": [
+    "discover legal workflows",
+    "explain legal workflow structure",
+    "resolve client and matter context through app-owned Apple database skills",
+    "resolve local matter documents through allowed file roots",
+    "compose shared legal skills into workflow runs",
+    "request human review before final legal outputs",
+    "emit display-shaped workflow progress and results"
+  ],
+  "defaultWorkflowRoots": [
+    "workflows/legal"
+  ],
+  "defaultSkillRoots": [
+    "skills/shared",
+    "skills/legal/shared",
+    "skills/legal/workflows"
+  ],
+  "modelPolicy": {
+    "defaultRoute": "local",
+    "defaultLocalModel": "qwen3.6:35b-a3b-nvfp4",
+    "sovereignty": "local-first",
+    "allowedRoutes": [
+      "local",
+      "ollama-cloud",
+      "codex-subscription",
+      "google-subscription",
+      "claude-subscription"
+    ]
+  },
+  "memoryPolicy": {
+    "allowed": [
+      "workflow definitions",
+      "skill definitions",
+      "test clients",
+      "test matters",
+      "workflow run summaries",
+      "human-approved reusable legal workflow notes"
+    ],
+    "disallowed": [
+      "unapproved legal advice",
+      "client secrets outside configured local storage",
+      "provider credentials",
+      "full confidential document corpora unless explicitly configured"
+    ]
+  }
+}

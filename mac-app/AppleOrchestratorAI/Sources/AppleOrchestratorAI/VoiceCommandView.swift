@@ -106,6 +106,12 @@ struct VoiceCommandView: View {
             }
 
             Button {
+                appState.runQuickCommand("check runtime")
+            } label: {
+                Label("Runtime", systemImage: "cpu")
+            }
+
+            Button {
                 appState.runQuickCommand("help")
             } label: {
                 Label("Help", systemImage: "questionmark.circle")
