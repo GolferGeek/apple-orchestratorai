@@ -120,15 +120,13 @@
   },
   "modelPolicy": {
     "defaultRoute": "local",
-    "sovereignty": "local-first",
+    "sovereignty": "local-only",
+    "costMode": "prepaid-local",
     "defaultLocalModel": "qwen3.6:35b-a3b-nvfp4",
     "allowedRoutes": [
-      "local",
-      "ollama-cloud",
-      "codex-subscription",
-      "google-subscription",
-      "claude-subscription"
+      "local"
     ],
+    "fallbackBehavior": "fail-with-explanation",
     "credentialPolicy": {
       "mode": "bring-your-own-key",
       "requiredFor": [
@@ -149,19 +147,16 @@
       {
         "classification": "demo-or-public",
         "allowedRoutes": [
-          "local",
-          "ollama-cloud",
-          "codex-subscription",
-          "google-subscription",
-          "claude-subscription"
+          "local"
         ],
-        "fallbackBehavior": "ask-user"
+        "fallbackBehavior": "fail-with-explanation"
       }
     ],
     "notes": [
+      "Local model execution is prepaid by Mac hardware and should not be described as free.",
       "Local Ollama providers may serialize specialist calls, so eight specialists can run sequentially.",
-      "Cloud-capable routes may parallelize specialists if workflow policy permits.",
-      "Cloud providers are available only when the organization/user supplies credentials and the workflow data classification permits cloud use."
+      "This workflow is currently sovereign/local-only; cloud provider credentials are irrelevant unless workflow policy is changed.",
+      "Cloud-capable variants may be defined later as separate workflow policies rather than implicit fallbacks."
     ]
   },
   "inputs": {

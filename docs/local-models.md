@@ -11,6 +11,8 @@ Local means local:
 - no Apple Private Cloud dependency for this app
 - Ollama is the local model provider
 
+Local inference is best described as prepaid, not free. The user pays for the Mac, memory, storage, electricity, and time. The benefit is near-zero marginal inference cost after that purchase, plus local control and no surprise per-run provider bill.
+
 ## Model Host
 
 The Mac runs Ollama. iPhone and iPad do not run heavy workflow models.
@@ -114,3 +116,20 @@ Hermes maps profiles to installed Ollama models.
 ## Missing Model Behavior
 
 If a required model/profile is missing, Hermes should emit a display response asking the user to install or select a model.
+
+## Hardware Economics
+
+A high-RAM Mac changes the marginal economics of workflows:
+
+- repeated workflow runs do not create a per-token cloud bill
+- source-picker reasoning and MCP planning can happen locally
+- legal document classification/synthesis can be tested many times without metered API spend
+- long local runs are slower but predictable in cost
+
+The app should surface this as a tradeoff, not a miracle:
+
+```text
+Local mode uses this Mac. It may be slower, but it does not use metered cloud inference.
+```
+
+For organizations without strong enough Macs, workflow policy can allow `ollama-cloud`, `codex-subscription`, `google-subscription`, or `claude-subscription`, subject to data classification and consent.
