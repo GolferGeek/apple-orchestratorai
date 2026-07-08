@@ -60,6 +60,7 @@ struct WorkflowRunStore {
                 guard let lineData = String(line).data(using: .utf8) else { return nil }
                 return try? decoder.decode(WorkflowRunEvent.self, from: lineData)
             }
+            .sorted { $0.timestamp < $1.timestamp }
     }
 
     func appendEvent(_ event: WorkflowRunEvent, repoRoot: URL?) {

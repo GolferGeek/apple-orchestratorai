@@ -191,6 +191,7 @@ final class AppState {
 
         openModal(.runs)
         statusMessage = "Running document onboarding dry run..."
+        let runId = "run-dry-\(Self.runTimestamp())"
 
         Task {
             let output = await Task.detached(priority: .userInitiated) {
@@ -201,7 +202,7 @@ final class AppState {
                         cwd: repoRoot,
                         environment: [
                             "DRY_RUN": "1",
-                            "RUN_ID": "run-dry-\(Self.runTimestamp())"
+                            "RUN_ID": runId
                         ]
                     )
                     return result.output.isEmpty ? "Exit code: \(result.exitCode)" : result.output
@@ -212,9 +213,52 @@ final class AppState {
 
             runtimeOutput = output
             refreshLocalState()
-            statusMessage = "Document onboarding dry run finished."
-            respond("The document onboarding dry run finished.")
+            let eventCount = workflowRuns.first(where: { $0.id == runId })?.events.count ?? 0
+            statusMessage = "Dry run \(runId) finished with \(eventCount) events."
+            respond("The document onboarding dry run finished with \(eventCount) events.")
         }
+    }
+
+    func plannedProgress(for run: WorkflowRunRecord) -> PlannedRunProgress? {
+        guard let plan = workflowExecutionPlans[run.workflowId] else {
+            return nil
+        }
+
+        let stages = plan.stages.map { stage in
+            PlannedStageProgress(
+                id: stage.id,
+                name: stage.name,
+                execution: stage.execution,
+                graphId: stage.graphId,
+                subgraphId: stage.subgraphId,
+                workUnits: stage.workUnits.map { workUnit in
+                    let events = run.events.filter { event in
+                        event.workUnitId == workUnit.id || event.skillId == workUnit.skillId
+                    }
+                    let status = Self.workUnitStatus(events: events)
+                    return PlannedWorkUnitProgress(
+                        id: workUnit.id,
+                        name: workUnit.name,
+                        skillId: workUnit.skillId,
+                        optional: workUnit.optional == true,
+                        status: status,
+                        lastEventType: events.last?.type
+                    )
+                }
+            )
+        }
+
+        let workUnits = stages.flatMap(\.workUnits)
+        let latest = run.events.reversed().compactMap { event in
+            workUnits.first { $0.id == event.workUnitId || $0.skillId == event.skillId }
+        }.first
+
+        return PlannedRunProgress(
+            stages: stages,
+            completedWorkUnitCount: workUnits.filter { $0.status == "completed" }.count,
+            totalWorkUnitCount: workUnits.count,
+            latestActiveWorkUnit: latest
+        )
     }
 
     func explainWorkflow(_ workflow: WorkflowCatalogItem) {
@@ -727,6 +771,16 @@ final class AppState {
 
     private static func isoTimestamp() -> String {
         ISO8601DateFormatter().string(from: Date())
+    }
+
+    private static func workUnitStatus(events: [WorkflowRunEvent]) -> String {
+        if events.contains(where: { $0.type == "work_unit.completed" || $0.type == "stage.completed" }) {
+            return "completed"
+        }
+        if events.contains(where: { $0.type == "work_unit.started" || $0.type == "stage.started" }) {
+            return "running"
+        }
+        return "defined"
     }
 
     nonisolated private static func runTimestamp() -> String {

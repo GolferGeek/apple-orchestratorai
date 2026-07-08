@@ -67,7 +67,7 @@ private struct LiveHermesEventSubscriptionView: View {
             }
 
             if !appState.liveHermesEvents.isEmpty {
-                EventStreamBlock(events: appState.liveHermesEvents)
+                EventStreamBlock(events: appState.liveHermesEvents, plan: nil)
             }
         }
         .padding(12)
@@ -128,8 +128,12 @@ private struct WorkflowRunCard: View {
 
             GenericTimelineBlock(title: "Timeline", stages: run.stages)
 
+            if let progress = appState.plannedProgress(for: run) {
+                PlannedRunProgressBlock(progress: progress)
+            }
+
             if !run.events.isEmpty {
-                EventStreamBlock(events: run.events)
+                EventStreamBlock(events: run.events, plan: appState.workflowExecutionPlans[run.workflowId])
             }
 
             if let humanReview = run.humanReview {
@@ -146,8 +150,94 @@ private struct WorkflowRunCard: View {
     }
 }
 
+private struct PlannedRunProgressBlock: View {
+    let progress: PlannedRunProgress
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Planned Progress")
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                StatusBadge(text: "\(progress.completedWorkUnitCount)/\(progress.totalWorkUnitCount)")
+            }
+
+            if let active = progress.latestActiveWorkUnit {
+                Text("Latest: \(active.name)")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+
+            ForEach(progress.stages) { stage in
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(stage.name)
+                            .font(.callout.weight(.semibold))
+                        Spacer()
+                        StatusBadge(text: stage.status)
+                        StatusBadge(text: stage.execution)
+                    }
+
+                    ForEach(stage.workUnits) { workUnit in
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Image(systemName: iconName(for: workUnit.status))
+                                .foregroundStyle(color(for: workUnit.status))
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack {
+                                    Text(workUnit.name)
+                                        .font(.callout)
+                                    if workUnit.optional {
+                                        StatusBadge(text: "optional")
+                                    }
+                                }
+                                Text(workUnit.skillId)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .textSelection(.enabled)
+                            }
+
+                            Spacer()
+                            StatusBadge(text: workUnit.status)
+                        }
+                    }
+                }
+                .padding(10)
+                .background(Color(nsColor: .textBackgroundColor).opacity(0.65))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+        }
+        .padding(12)
+        .background(.teal.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func iconName(for status: String) -> String {
+        switch status {
+        case "completed":
+            "checkmark.circle.fill"
+        case "running", "started":
+            "play.circle.fill"
+        default:
+            "circle"
+        }
+    }
+
+    private func color(for status: String) -> Color {
+        switch status {
+        case "completed":
+            .green
+        case "running", "started":
+            .orange
+        default:
+            .secondary
+        }
+    }
+}
+
 private struct EventStreamBlock: View {
     let events: [WorkflowRunEvent]
+    let plan: WorkflowExecutionPlan?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -167,10 +257,10 @@ private struct EventStreamBlock: View {
 
                     HStack(spacing: 10) {
                         if let stageId = event.stageId {
-                            Label(stageId, systemImage: "square.stack.3d.up")
+                            Label(stageName(stageId), systemImage: "square.stack.3d.up")
                         }
                         if let workUnitId = event.workUnitId {
-                            Label(workUnitId, systemImage: "hammer")
+                            Label(workUnitName(workUnitId), systemImage: "hammer")
                         }
                         if let skillId = event.skillId {
                             Label(skillId, systemImage: "puzzlepiece.extension")
@@ -219,6 +309,17 @@ private struct EventStreamBlock: View {
         .padding(12)
         .background(.purple.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func stageName(_ stageId: String) -> String {
+        plan?.stages.first(where: { $0.id == stageId })?.name ?? stageId
+    }
+
+    private func workUnitName(_ workUnitId: String) -> String {
+        plan?.stages
+            .flatMap(\.workUnits)
+            .first(where: { $0.id == workUnitId })?
+            .name ?? workUnitId
     }
 }
 

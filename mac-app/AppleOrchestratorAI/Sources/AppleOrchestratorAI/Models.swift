@@ -121,6 +121,44 @@ struct WorkflowHumanCheckpoint: Identifiable, Decodable, Equatable {
     let allowedDecisions: [String]
 }
 
+struct PlannedRunProgress {
+    let stages: [PlannedStageProgress]
+    let completedWorkUnitCount: Int
+    let totalWorkUnitCount: Int
+    let latestActiveWorkUnit: PlannedWorkUnitProgress?
+}
+
+struct PlannedStageProgress: Identifiable {
+    let id: String
+    let name: String
+    let execution: String
+    let graphId: String
+    let subgraphId: String?
+    let workUnits: [PlannedWorkUnitProgress]
+
+    var status: String {
+        if workUnits.allSatisfy({ $0.status == "completed" }) {
+            return "completed"
+        }
+        if workUnits.contains(where: { $0.status == "running" }) {
+            return "running"
+        }
+        if workUnits.contains(where: { $0.status == "started" }) {
+            return "started"
+        }
+        return "defined"
+    }
+}
+
+struct PlannedWorkUnitProgress: Identifiable {
+    let id: String
+    let name: String
+    let skillId: String
+    let optional: Bool
+    let status: String
+    let lastEventType: String?
+}
+
 struct WorkflowRunRecord: Identifiable, Codable, Equatable {
     let id: String
     let workflowId: String
