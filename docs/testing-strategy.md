@@ -49,3 +49,11 @@ The first end-to-end test should run document onboarding against a local test ma
 - approval action works
 - output appears
 - run completes
+
+The cheap regression path should exercise the same runner without calling Hermes or a local model:
+
+```bash
+DRY_RUN=1 RUN_ID=run-dry-smoke scripts/run-document-onboarding-workflow.sh
+```
+
+That path validates execution-plan stage order, local run persistence, event emission, human-review persistence, and final display-envelope writing.

@@ -13,6 +13,7 @@ EVENTS_FILE="${STATE_DIR}/events/${RUN_ID}.jsonl"
 ENVELOPE_FILE="${STATE_DIR}/display-envelopes/${RUN_ID}.json"
 STAGE_DIR="${STATE_DIR}/stage-results/${RUN_ID}"
 MODEL="${MODEL:-qwen3.6:35b-a3b-nvfp4}"
+DRY_RUN="${DRY_RUN:-0}"
 
 if [[ ! -f "${FIXTURE}" ]]; then
   echo "Missing fixture: ${FIXTURE}" >&2
@@ -33,8 +34,6 @@ python3 "${ROOT_DIR}/scripts/workflow-state.py" init "${RUN_FILE}" "${EVENTS_FIL
 
 run_stage() {
   local stage_id="$1"
-  local stage_name="$2"
-  local stage_skill="$3"
   local output_file="${STAGE_DIR}/${stage_id}.json"
 
   python3 - "${EVENTS_FILE}" "${RUN_ID}" "${stage_id}" "${EXECUTION_PLAN}" <<'PY'
@@ -71,22 +70,27 @@ with Path(events_file).open("a") as handle:
     handle.write(json.dumps(unit_event, separators=(",", ":")) + "\n")
 PY
 
-  prompt="$(python3 - "${WORKFLOW}" "${FIXTURE}" "${LAUNCH_PAYLOAD}" "${stage_id}" "${stage_name}" "${stage_skill}" <<'PY'
+  prompt="$(python3 - "${WORKFLOW}" "${FIXTURE}" "${LAUNCH_PAYLOAD}" "${EXECUTION_PLAN}" "${stage_id}" <<'PY'
 import json
 import sys
 
-workflow_path, fixture_path, launch_payload_path, stage_id, stage_name, stage_skill = sys.argv[1:7]
+workflow_path, fixture_path, launch_payload_path, execution_plan_path, stage_id = sys.argv[1:6]
 workflow = json.load(open(workflow_path))
 fixture = json.load(open(fixture_path))
 launch_payload = json.load(open(launch_payload_path))
+execution_plan = json.load(open(execution_plan_path))
 stage = next(item for item in workflow["runtime"]["observability"]["presentationStages"] if item == stage_id)
+planned_stage = next(item for item in execution_plan["stages"] if item["id"] == stage_id)
+required_units = [item for item in planned_stage["workUnits"] if not item.get("optional")]
+representative_unit = required_units[-1] if required_units else planned_stage["workUnits"][-1]
 summary = {
     "workflowId": workflow["id"],
     "workflowName": workflow["name"],
     "launchPayload": launch_payload,
+    "executionStage": planned_stage,
     "stageId": stage,
-    "stageName": stage_name,
-    "skill": stage_skill,
+    "stageName": planned_stage["name"],
+    "skill": representative_unit["skillId"],
     "client": fixture["client"],
     "matter": fixture["matter"],
     "files": fixture["fileSystemDocuments"]["filePaths"],
@@ -107,22 +111,49 @@ print(
 PY
 )"
 
-  HERMES_JSON_PROMPT="${prompt}" \
-  HERMES_JSON_OUTPUT_FILE="${output_file}" \
-  HERMES_JSON_REQUIRED_KEYS="id,name,status,summary,output" \
-  HERMES_JSON_POLL_COUNT=120 \
-  MODEL="${MODEL}" \
-  "${ROOT_DIR}/scripts/hermes-json-run.sh"
+  if [[ "${DRY_RUN}" == "1" ]]; then
+    python3 - "${output_file}" "${stage_id}" "${EXECUTION_PLAN}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+output_file, stage_id, execution_plan_file = sys.argv[1:4]
+plan = json.load(open(execution_plan_file))
+stage = next(item for item in plan["stages"] if item["id"] == stage_id)
+result = {
+    "id": stage_id,
+    "name": stage["name"],
+    "status": "completed",
+    "summary": f"{stage['name']} completed in dry run.",
+    "output": f"{stage['name']} exercised through the execution plan without calling Hermes.",
+    "_rawHermesRunId": "dry-run",
+}
+Path(output_file).parent.mkdir(parents=True, exist_ok=True)
+Path(output_file).write_text(json.dumps(result, indent=2) + "\n")
+PY
+  else
+    HERMES_JSON_PROMPT="${prompt}" \
+    HERMES_JSON_OUTPUT_FILE="${output_file}" \
+    HERMES_JSON_REQUIRED_KEYS="id,name,status,summary,output" \
+    HERMES_JSON_POLL_COUNT=120 \
+    MODEL="${MODEL}" \
+    "${ROOT_DIR}/scripts/hermes-json-run.sh"
+  fi
 
   python3 "${ROOT_DIR}/scripts/workflow-state.py" stage "${RUN_FILE}" "${EVENTS_FILE}" "${stage_id}" "${output_file}"
 }
 
-run_stage "metadata" "Metadata" "legal.shared.extract-document-metadata.v0"
-run_stage "classify" "Classify" "legal.shared.clo-route-specialists.v0"
-run_stage "specialists" "Specialists" "legal.shared.specialist-review.v0"
-run_stage "synthesis" "Synthesis" "legal.workflow.document-onboarding.synthesize-findings.v0"
-run_stage "hitl_review" "Human Review" "workflow.request-human-review.v0"
-run_stage "report" "Report" "workflow.render-output-packet.v0"
+while IFS= read -r stage_id; do
+  run_stage "${stage_id}"
+done < <(python3 - "${EXECUTION_PLAN}" <<'PY'
+import json
+import sys
+
+plan = json.load(open(sys.argv[1]))
+for stage in plan["stages"]:
+    print(stage["id"])
+PY
+)
 
 python3 "${ROOT_DIR}/scripts/workflow-state.py" finalize "${RUN_FILE}" "${EVENTS_FILE}" "${ENVELOPE_FILE}"
 
