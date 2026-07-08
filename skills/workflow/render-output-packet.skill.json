@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "workflow.render-output-packet.v0",
+  "name": "Render Output Packet",
+  "namespace": "workflow",
+  "status": "dev",
+  "summary": "Render workflow outputs into a display envelope and optional artifact bundle.",
+  "inputs": {
+    "outputContracts": "schemas/workflows/workflow-launch.v0.schema.json.outputContracts",
+    "runOutputs": "object",
+    "humanReviewDecision": "object?"
+  },
+  "outputs": {
+    "displayEnvelope": "schemas/workflows/display-envelope.v0.schema.json",
+    "artifacts": "object[]"
+  },
+  "events": [
+    "work_unit.started",
+    "work_unit.completed",
+    "workflow.completed"
+  ],
+  "guardrails": [
+    "Render only outputs allowed by the workflow output contract.",
+    "Mark missing required outputs as workflow failure or human-review warnings."
+  ]
+}

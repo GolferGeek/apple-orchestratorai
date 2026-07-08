@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "legal.workflow.document-onboarding.synthesize-findings.v0",
+  "name": "Synthesize Document Onboarding Findings",
+  "namespace": "legal.workflow",
+  "status": "dev",
+  "summary": "Combine metadata, routing, and specialist outputs into a cross-domain document onboarding synthesis.",
+  "inputs": {
+    "documentsText": "shared.text-extract.v0.outputs.documentsText",
+    "documentsMetadata": "legal.shared.extract-document-metadata.v0.outputs.documentsMetadata",
+    "routingDecision": "legal.shared.clo-route-specialists.v0.outputs.routingDecision",
+    "specialistOutputs": "legal.shared.specialist-review.v0.outputs.specialistOutputs"
+  },
+  "outputs": {
+    "synthesis": {
+      "executiveSummary": "markdown",
+      "riskMatrix": "object[]",
+      "crossDocumentFindings": "object[]",
+      "recommendedActions": "object[]",
+      "humanReviewFlags": "object[]",
+      "confidence": "number"
+    }
+  },
+  "guardrails": [
+    "Do not present legal conclusions as final until human review is complete.",
+    "Preserve citations and source references from specialist outputs.",
+    "Surface conflicts between specialist lanes instead of hiding them."
+  ]
+}

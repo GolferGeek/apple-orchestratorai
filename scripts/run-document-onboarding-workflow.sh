@@ -7,6 +7,7 @@ RUN_ID="${RUN_ID:-run-document-onboarding-$(date -u +%Y%m%dT%H%M%SZ)}"
 FIXTURE="${ROOT_DIR}/test-fixtures/legal/document-onboarding/acme-renewal/input.json"
 LAUNCH_PAYLOAD="${ROOT_DIR}/test-fixtures/legal/document-onboarding/acme-renewal/launch-payload.json"
 WORKFLOW="${ROOT_DIR}/workflows/legal/document-onboarding.workflow.json"
+EXECUTION_PLAN="${ROOT_DIR}/workflows/legal/document-onboarding.execution-plan.json"
 RUN_FILE="${STATE_DIR}/runs/${RUN_ID}.json"
 EVENTS_FILE="${STATE_DIR}/events/${RUN_ID}.jsonl"
 ENVELOPE_FILE="${STATE_DIR}/display-envelopes/${RUN_ID}.json"
@@ -23,6 +24,11 @@ if [[ ! -f "${LAUNCH_PAYLOAD}" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${EXECUTION_PLAN}" ]]; then
+  echo "Missing execution plan: ${EXECUTION_PLAN}" >&2
+  exit 1
+fi
+
 python3 "${ROOT_DIR}/scripts/workflow-state.py" init "${RUN_FILE}" "${EVENTS_FILE}" "${RUN_ID}" "${FIXTURE}"
 
 run_stage() {
@@ -31,33 +37,26 @@ run_stage() {
   local stage_skill="$3"
   local output_file="${STAGE_DIR}/${stage_id}.json"
 
-  python3 - "${EVENTS_FILE}" "${RUN_ID}" "${stage_id}" "${WORKFLOW}" <<'PY'
+  python3 - "${EVENTS_FILE}" "${RUN_ID}" "${stage_id}" "${EXECUTION_PLAN}" <<'PY'
 import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-events_file, run_id, stage_id, workflow_file = sys.argv[1:5]
-workflow = json.load(open(workflow_file))
-stage_details = {
-    "metadata": ("intake-and-metadata", "metadata-extraction", "extract-legal-metadata", "legal.shared.extract-document-metadata.v0"),
-    "classify": ("classification-and-specialist-routing", "clo-routing", "route-specialists", "legal.shared.clo-route-specialists.v0"),
-    "specialists": ("specialist-review", "specialist-lanes", "run-specialist-lanes", "legal.shared.specialist-review.v0"),
-    "synthesis": ("synthesis-and-review", "synthesize-findings", "synthesize-legal-findings", "legal.workflow.document-onboarding.synthesize-findings.v0"),
-    "hitl_review": ("synthesis-and-review", "attorney-review", "request-attorney-review", "workflow.request-human-review.v0"),
-    "report": ("report-and-routing", "render-output-packet", "render-document-onboarding-report", "workflow.render-output-packet.v0"),
-}
-graph_id, subgraph_id, work_unit_id, skill_id = stage_details[stage_id]
+events_file, run_id, stage_id, execution_plan_file = sys.argv[1:5]
+plan = json.load(open(execution_plan_file))
+stage = next(item for item in plan["stages"] if item["id"] == stage_id)
+primary = next((unit for unit in stage["workUnits"] if not unit.get("optional")), stage["workUnits"][0])
 event = {
     "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
     "type": "stage.started",
     "runId": run_id,
-    "workflowId": workflow["id"],
+    "workflowId": plan["workflowId"],
     "stageId": stage_id,
-    "graphId": graph_id,
-    "subgraphId": subgraph_id,
-    "workUnitId": work_unit_id,
-    "skillId": skill_id,
+    "graphId": stage["graphId"],
+    "subgraphId": stage.get("subgraphId"),
+    "workUnitId": primary["id"],
+    "skillId": primary["skillId"],
     "status": "running",
     "summary": f"{stage_id.replace('_', ' ').title()} started.",
     "message": "Hermes is running the workflow skill for this stage.",

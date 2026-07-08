@@ -140,6 +140,7 @@ The first concrete request and response schemas are:
 
 - `schemas/workflows/run-start.v0.schema.json`
 - `schemas/workflows/workflow-launch.v0.schema.json`
+- `schemas/workflows/workflow-execution-plan.v0.schema.json`
 - `schemas/workflows/run-status.v0.schema.json`
 - `schemas/workflows/approval-response.v0.schema.json`
 - `schemas/workflows/workflow-explanation.v0.schema.json`
@@ -147,6 +148,12 @@ The first concrete request and response schemas are:
 Human approval responses are intentionally generic. The app sends `review_id`, an overall decision, optional note, and segment decisions. Hermes owns how that response resumes or revises the workflow.
 
 Workflow launches should prefer a typed `workflow.launch.v0` payload serialized inside the Hermes run input. That payload is the source of truth for workflow id, profile id, launch mode, source references, classification, model policy, and expected output contracts. Natural language around the payload may explain how Hermes should treat it, but Hermes should not infer workflow-critical values from prose when they are present in the payload.
+
+Workflow execution plans are the bridge from workflow JSON to runnable Hermes work. A plan lists stages and work units with their skill ids, inputs, outputs, event expectations, and human checkpoints. Hermes can derive this from workflow JSON later; for now document onboarding has an explicit golden-path plan:
+
+```text
+workflows/legal/document-onboarding.execution-plan.json
+```
 
 Known Hermes run events include:
 
@@ -223,6 +230,7 @@ The first concrete contract files are now:
 
 - `schemas/workflows/display-envelope.v0.schema.json`
 - `schemas/workflows/workflow-launch.v0.schema.json`
+- `schemas/workflows/workflow-execution-plan.v0.schema.json`
 - `schemas/workflows/workflow-run.v0.schema.json`
 - `schemas/workflows/human-review.v0.schema.json`
 - `schemas/workflows/workflow-event.v0.schema.json`

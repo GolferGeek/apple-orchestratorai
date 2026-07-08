@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "workflow.run-structured-graph.v0",
+  "name": "Run Structured Workflow Graph",
+  "namespace": "workflow",
+  "status": "dev",
+  "summary": "Execute a workflow execution plan by invoking graph, subgraph, and work-unit skills in dependency order.",
+  "inputs": {
+    "launchPayload": "schemas/workflows/workflow-launch.v0.schema.json",
+    "workflowDefinition": "workflows/*/*.workflow.json",
+    "executionPlan": "schemas/workflows/workflow-execution-plan.v0.schema.json"
+  },
+  "outputs": {
+    "runRecord": "schemas/workflows/workflow-run.v0.schema.json",
+    "displayEnvelope": "schemas/workflows/display-envelope.v0.schema.json"
+  },
+  "events": [
+    "workflow.started",
+    "stage.started",
+    "work_unit.started",
+    "work_unit.completed",
+    "stage.completed",
+    "workflow.completed",
+    "workflow.failed"
+  ],
+  "guardrails": [
+    "Respect the workflow model policy on every work unit.",
+    "Emit workflow-event.v0 compatible events for every work unit.",
+    "Pause at human-gated stages and resume only through the approval contract."
+  ]
+}

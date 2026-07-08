@@ -14,55 +14,17 @@ STAGE_NAMES = {
     "report": "Report",
 }
 
-STAGE_DETAILS = {
-    "metadata": {
-        "graphId": "intake-and-metadata",
-        "subgraphId": "metadata-extraction",
-        "workUnitId": "extract-legal-metadata",
-        "skillId": "legal.shared.extract-document-metadata.v0",
-        "outputId": "documentsMetadata",
-        "outputType": "json",
-    },
-    "classify": {
-        "graphId": "classification-and-specialist-routing",
-        "subgraphId": "clo-routing",
-        "workUnitId": "route-specialists",
-        "skillId": "legal.shared.clo-route-specialists.v0",
-        "outputId": "routingDecision",
-        "outputType": "json",
-    },
-    "specialists": {
-        "graphId": "specialist-review",
-        "subgraphId": "specialist-lanes",
-        "workUnitId": "run-specialist-lanes",
-        "skillId": "legal.shared.specialist-review.v0",
-        "outputId": "specialistOutputs",
-        "outputType": "json",
-    },
-    "synthesis": {
-        "graphId": "synthesis-and-review",
-        "subgraphId": "synthesize-findings",
-        "workUnitId": "synthesize-legal-findings",
-        "skillId": "legal.workflow.document-onboarding.synthesize-findings.v0",
-        "outputId": "synthesis",
-        "outputType": "json",
-    },
-    "hitl_review": {
-        "graphId": "synthesis-and-review",
-        "subgraphId": "attorney-review",
-        "workUnitId": "request-attorney-review",
-        "skillId": "workflow.request-human-review.v0",
-        "outputId": "reviewPayload",
-        "outputType": "json",
-    },
-    "report": {
-        "graphId": "report-and-routing",
-        "subgraphId": "render-output-packet",
-        "workUnitId": "render-document-onboarding-report",
-        "skillId": "workflow.render-output-packet.v0",
-        "outputId": "document-onboarding-report",
-        "outputType": "markdown",
-    },
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_EXECUTION_PLAN = ROOT / "workflows/legal/document-onboarding.execution-plan.json"
+OUTPUT_TYPES = {
+    "outputs.documentsMetadata": ("documentsMetadata", "json"),
+    "outputs.routingDecision": ("routingDecision", "json"),
+    "outputs.specialistOutputs": ("specialistOutputs", "json"),
+    "outputs.synthesis": ("synthesis", "json"),
+    "outputs.nextWorkflowRecommendations": ("nextWorkflowRecommendations", "json"),
+    "outputs.reviewPayload": ("reviewPayload", "json"),
+    "outputs.response": ("response", "markdown"),
+    "outputs.document-onboarding-report": ("document-onboarding-report", "markdown"),
 }
 
 
@@ -72,6 +34,28 @@ def now():
 
 def load(path):
     return json.loads(Path(path).read_text())
+
+
+def execution_stage_details(plan_file=DEFAULT_EXECUTION_PLAN):
+    plan = load(plan_file)
+    details = {}
+    for stage in plan["stages"]:
+        required_units = [unit for unit in stage["workUnits"] if not unit.get("optional")]
+        primary = required_units[-1] if required_units else stage["workUnits"][-1]
+        output_ref = next((item for item in reversed(primary.get("outputs", [])) if item.startswith("outputs.")), primary["outputs"][-1])
+        output_id, output_type = OUTPUT_TYPES.get(output_ref, (output_ref.split(".")[-1], "json"))
+        details[stage["id"]] = {
+            "graphId": stage["graphId"],
+            "subgraphId": stage.get("subgraphId"),
+            "workUnitId": primary["id"],
+            "skillId": primary["skillId"],
+            "outputId": output_id,
+            "outputType": output_type,
+        }
+    return details
+
+
+STAGE_DETAILS = execution_stage_details()
 
 
 def save(path, value):
