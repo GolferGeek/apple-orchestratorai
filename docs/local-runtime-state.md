@@ -52,6 +52,8 @@ Runtime-generated records are written under:
 ```text
 .runtime/apple-local-state/runs/
 .runtime/apple-local-state/display-envelopes/
+.runtime/apple-local-state/events/
+.runtime/apple-local-state/stage-results/
 ```
 
 These files are intentionally ignored by git. They model the rows that later move into Apple-native persistence.
@@ -69,7 +71,7 @@ The app reads run records and renders them with generic blocks:
 - human review block
 - output block
 
-Hermes should write the display envelope first, then the normalized run record. The run record preserves enough summary state for the UI to recover after reconnect. Raw Hermes event ids and event URIs can be added to the run record for audit/debugging.
+Hermes should append events as each stage starts and completes, write each stage result, then write the display envelope and normalized run record. The run record preserves enough summary state for the UI to recover after reconnect. Raw Hermes run ids are preserved in the event stream for audit/debugging.
 
 ## Segmented Human Tasks
 

@@ -185,6 +185,6 @@ The current executable path is:
 scripts/run-document-onboarding-workflow.sh
 ```
 
-It calls Hermes through the local gateway, validates the display envelope, writes the envelope to `.runtime/apple-local-state/display-envelopes/`, and writes the normalized run record to `.runtime/apple-local-state/runs/`.
+It calls Hermes through the local gateway once per workflow stage, writes stage results to `.runtime/apple-local-state/stage-results/`, appends JSONL events to `.runtime/apple-local-state/events/`, writes the final envelope to `.runtime/apple-local-state/display-envelopes/`, and writes the normalized run record to `.runtime/apple-local-state/runs/`.
 
-That script is the bridge from the prompt-only fixture smoke test toward the real workflow runner. The next implementation step is to replace its compact prompt with a Hermes workflow skill call that performs the stage work and emits events incrementally.
+That script is the bridge from the prompt-only fixture smoke test toward the real workflow runner. The next implementation step is to replace each compact stage prompt with the corresponding Hermes workflow skill implementation while preserving the same event and persistence contract.
