@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "runtime.manifest.v0",
+  "app": {
+    "id": "apple-orchestrator-ai",
+    "name": "Apple Orchestrator AI",
+    "primaryPlatform": "macOS"
+  },
+  "runtimes": [
+    {
+      "id": "hermes",
+      "required": true,
+      "managedBy": "app",
+      "expectedInterfaces": [
+        "http-api",
+        "event-stream",
+        "cli"
+      ],
+      "responsibilities": [
+        "profiles",
+        "skills",
+        "workflow-execution",
+        "provider-route-policy",
+        "run-events"
+      ]
+    },
+    {
+      "id": "pi",
+      "required": false,
+      "managedBy": "app",
+      "expectedInterfaces": [
+        "cli",
+        "sdk"
+      ],
+      "responsibilities": [
+        "admin-frontend",
+        "coding-harness",
+        "runtime-maintenance"
+      ]
+    },
+    {
+      "id": "ollama",
+      "required": false,
+      "managedBy": "shared-apple-ai-runtime",
+      "runtimeRoot": "/Users/golfergeek/projects/golfergeek/apple-ai-runtime",
+      "defaultBaseUrl": "http://127.0.0.1:11435/v1",
+      "expectedInterfaces": [
+        "http-api",
+        "cli"
+      ],
+      "responsibilities": [
+        "local-inference"
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "legal-dev",
+      "required": true,
+      "responsibilities": [
+        "legal-workflow-authoring",
+        "legal-workflow-execution",
+        "legal-shared-skill-selection"
+      ]
+    }
+  ],
+  "workflowRoots": [
+    "workflows/legal"
+  ],
+  "skillRoots": [
+    "skills/shared",
+    "skills/legal/shared",
+    "skills/legal/workflows"
+  ]
+}

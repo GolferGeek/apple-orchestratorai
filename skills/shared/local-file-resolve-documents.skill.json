@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "shared.local-file-resolve-documents.v0",
+  "name": "Resolve Local File Documents",
+  "namespace": "shared",
+  "status": "dev",
+  "summary": "Normalize user-approved local file paths into stable document references for a workflow run.",
+  "inputs": {
+    "baseDirectory": "string?",
+    "filePaths": "string[]",
+    "sourceUris": "string[]?",
+    "client": "object?",
+    "matter": "object?"
+  },
+  "outputs": {
+    "localFiles": [
+      {
+        "id": "string",
+        "displayName": "string",
+        "path": "string",
+        "sourceUri": "string?",
+        "clientId": "string?",
+        "matterId": "string?",
+        "mimeType": "string?",
+        "sizeBytes": "number?",
+        "sha256": "string?"
+      }
+    ],
+    "warnings": "string[]"
+  },
+  "guardrails": [
+    "Only read files from user-approved roots or explicit file picker selections.",
+    "Reject path traversal outside the approved base directory.",
+    "Do not copy client-confidential content to cloud routes when workflow policy is local-only."
+  ]
+}

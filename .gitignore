@@ -1,0 +1,7 @@
+.build/
+.runtime/
+dist/
+build/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+.DS_Store

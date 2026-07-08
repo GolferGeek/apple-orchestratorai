@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "shared.text-extract.v0",
+  "name": "Extract Text",
+  "namespace": "shared",
+  "status": "dev",
+  "summary": "Extract text and page/section anchors from local documents.",
+  "inputs": {
+    "localFiles": "shared.local-file-resolve-documents.v0.outputs.localFiles",
+    "ocrFallback": "boolean"
+  },
+  "outputs": {
+    "documentsText": [
+      {
+        "documentId": "string",
+        "text": "markdown",
+        "anchors": "object[]",
+        "extractionMethod": "native-pdf|ocr|docx|text|structured"
+      }
+    ],
+    "warnings": "string[]"
+  },
+  "fallbackSkills": [
+    "shared.ocr-if-needed.v0",
+    "shared.docx-tracked-changes-extract.v0"
+  ]
+}

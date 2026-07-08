@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "legal.shared.clo-route-specialists.v0",
+  "name": "CLO Route Specialists",
+  "namespace": "legal.shared",
+  "status": "dev",
+  "summary": "Choose the legal specialist lanes that should review a document package.",
+  "inputs": {
+    "documentsMetadata": "legal.shared.extract-document-metadata.v0.outputs.documentsMetadata",
+    "matter": "object?",
+    "reviewInstructions": "markdown?"
+  },
+  "outputs": {
+    "routingDecision": {
+      "selectedLanes": "string[]",
+      "rationale": "markdown",
+      "confidence": "number"
+    }
+  },
+  "availableLanes": [
+    "contract",
+    "compliance",
+    "ip",
+    "privacy",
+    "employment",
+    "corporate",
+    "litigation",
+    "real-estate"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "legal.shared.specialist-review.v0",
+  "name": "Legal Specialist Review",
+  "namespace": "legal.shared",
+  "status": "dev",
+  "summary": "Base contract for specialist lanes such as contract, compliance, privacy, corporate, litigation, and real estate.",
+  "inputs": {
+    "lane": "string",
+    "documentsText": "shared.text-extract.v0.outputs.documentsText",
+    "documentsMetadata": "legal.shared.extract-document-metadata.v0.outputs.documentsMetadata",
+    "matter": "object?",
+    "reviewInstructions": "markdown?"
+  },
+  "outputs": {
+    "specialistOutput": {
+      "lane": "string",
+      "summary": "markdown",
+      "findings": "object[]",
+      "risks": "object[]",
+      "recommendedActions": "object[]",
+      "citations": "object[]",
+      "confidence": "number"
+    }
+  },
+  "aliases": [
+    "legal.shared.specialist.contract-review.v0",
+    "legal.shared.specialist.compliance-review.v0",
+    "legal.shared.specialist.ip-review.v0",
+    "legal.shared.specialist.privacy-review.v0",
+    "legal.shared.specialist.employment-review.v0",
+    "legal.shared.specialist.corporate-review.v0",
+    "legal.shared.specialist.litigation-review.v0",
+    "legal.shared.specialist.real-estate-review.v0"
+  ]
+}
