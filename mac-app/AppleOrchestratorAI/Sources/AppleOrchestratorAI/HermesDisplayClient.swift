@@ -29,6 +29,17 @@ struct HermesDisplayClient {
         return try Self.decodePickerOptions(output: output, expectedKind: kind)
     }
 
+    func explainWorkflow(_ workflow: WorkflowCatalogItem, targetType: String = "workflow", targetId: String? = nil) async throws -> WorkflowExplanation {
+        let response = try await runClient.startRun(
+            input: Self.explanationPrompt(workflow: workflow, targetType: targetType, targetId: targetId ?? workflow.id),
+            model: workflow.defaultLocalModel,
+            sessionId: "apple-orchestratorai-workflow-explanations"
+        )
+
+        let output = try await waitForOutput(runId: response.runId)
+        return try Self.decodeWorkflowExplanation(output: output)
+    }
+
     private func waitForOutput(runId: String) async throws -> String {
         for _ in 0..<90 {
             var request = URLRequest(url: baseURL.appending(path: "v1/runs/\(runId)"))
@@ -56,18 +67,7 @@ struct HermesDisplayClient {
     }
 
     private static func decodePickerOptions(output: String, expectedKind: LegalSourceKind) throws -> [LegalSourceOption] {
-        var text = output.trimmingCharacters(in: .whitespacesAndNewlines)
-        if text.hasPrefix("```") {
-            var lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-            if lines.first?.hasPrefix("```") == true {
-                lines.removeFirst()
-            }
-            if lines.last?.hasPrefix("```") == true {
-                lines.removeLast()
-            }
-            text = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-
+        let text = strippedJSONText(output)
         guard let data = text.data(using: .utf8) else {
             throw HermesDisplayClientError.invalidJSON
         }
@@ -84,6 +84,30 @@ struct HermesDisplayClient {
         }
     }
 
+    private static func decodeWorkflowExplanation(output: String) throws -> WorkflowExplanation {
+        let text = strippedJSONText(output)
+        guard let data = text.data(using: .utf8) else {
+            throw HermesDisplayClientError.invalidJSON
+        }
+
+        return try JSONDecoder().decode(WorkflowExplanation.self, from: data)
+    }
+
+    private static func strippedJSONText(_ output: String) -> String {
+        var text = output.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.hasPrefix("```") {
+            var lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+            if lines.first?.hasPrefix("```") == true {
+                lines.removeFirst()
+            }
+            if lines.last?.hasPrefix("```") == true {
+                lines.removeLast()
+            }
+            text = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return text
+    }
+
     private static func prompt(kind: LegalSourceKind, parentId: String?) -> String {
         let parentClause = parentId.map { " Parent id: \($0)." } ?? ""
         return """
@@ -95,11 +119,20 @@ struct HermesDisplayClient {
         Use the demo Acme Robotics legal source if no external MCP source is configured.
         """
     }
-}
 
-private struct HermesRunStatusResponse: Decodable {
-    let status: String
-    let output: String?
+    private static func explanationPrompt(workflow: WorkflowCatalogItem, targetType: String, targetId: String) -> String {
+        """
+        You are Hermes explaining an Apple Orchestrator AI workflow to a lawyer or legal student.
+        Return ONLY valid one-line JSON with this exact shape:
+        {"schema_version":"0.1","kind":"workflow.explanation","workflow_id":"\(workflow.id)","target":{"type":"\(targetType)","id":"\(targetId)"},"title":"string","summary":"string","sections":[{"heading":"string","items":["string"]}],"actions":[{"id":"request_change","label":"Request Change"},{"id":"show_related_outputs","label":"Show Outputs"}]}
+        Explain what it does, what it needs, what it produces, and where human review happens.
+        Do not expose raw workflow JSON as the primary answer.
+        Workflow name: \(workflow.name)
+        Workflow description: \(workflow.description)
+        Stages: \(workflow.stages.joined(separator: ", "))
+        Human interaction: \(workflow.humanInteraction)
+        """
+    }
 }
 
 private struct PickerOptionsEnvelope: Decodable {

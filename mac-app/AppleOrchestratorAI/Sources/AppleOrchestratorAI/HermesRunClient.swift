@@ -36,6 +36,62 @@ struct HermesRunClient {
 
         return try JSONDecoder().decode(HermesRunStartResponse.self, from: data)
     }
+
+    func fetchRun(runId: String) async throws -> HermesRunStatusResponse {
+        var request = URLRequest(url: baseURL.appending(path: "v1/runs/\(runId)"))
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 15
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {
+            throw HermesRunClientError.invalidResponse(String(data: data, encoding: .utf8) ?? "")
+        }
+
+        return try JSONDecoder().decode(HermesRunStatusResponse.self, from: data)
+    }
+
+    func submitApproval(runId: String, review: HumanReviewRecord, decision: String, note: String? = nil) async throws -> HermesRunStatusResponse {
+        var request = URLRequest(url: baseURL.appending(path: "v1/runs/\(runId)/approval"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30
+
+        request.httpBody = try JSONEncoder().encode(HermesApprovalRequest(
+            reviewId: review.id,
+            decision: decision,
+            note: note,
+            segments: review.segments.map {
+                HermesApprovalSegmentDecision(
+                    id: $0.id,
+                    decision: decision,
+                    note: $0.summary
+                )
+            }
+        ))
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {
+            throw HermesRunClientError.invalidResponse(String(data: data, encoding: .utf8) ?? "")
+        }
+
+        return try JSONDecoder().decode(HermesRunStatusResponse.self, from: data)
+    }
+
+    func stopRun(runId: String) async throws -> HermesRunStatusResponse {
+        var request = URLRequest(url: baseURL.appending(path: "v1/runs/\(runId)/stop"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 15
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {
+            throw HermesRunClientError.invalidResponse(String(data: data, encoding: .utf8) ?? "")
+        }
+
+        return try JSONDecoder().decode(HermesRunStatusResponse.self, from: data)
+    }
 }
 
 struct HermesRunStartResponse: Decodable {
@@ -45,6 +101,18 @@ struct HermesRunStartResponse: Decodable {
     enum CodingKeys: String, CodingKey {
         case runId = "run_id"
         case status
+    }
+}
+
+struct HermesRunStatusResponse: Decodable {
+    let runId: String?
+    let status: String
+    let output: String?
+
+    enum CodingKeys: String, CodingKey {
+        case runId = "run_id"
+        case status
+        case output
     }
 }
 
@@ -60,6 +128,26 @@ private struct HermesRunStartRequest: Encodable {
         case sessionId = "session_id"
         case model
     }
+}
+
+private struct HermesApprovalRequest: Encodable {
+    let reviewId: String
+    let decision: String
+    let note: String?
+    let segments: [HermesApprovalSegmentDecision]
+
+    enum CodingKeys: String, CodingKey {
+        case reviewId = "review_id"
+        case decision
+        case note
+        case segments
+    }
+}
+
+private struct HermesApprovalSegmentDecision: Encodable {
+    let id: String
+    let decision: String
+    let note: String?
 }
 
 enum HermesRunClientError: LocalizedError {

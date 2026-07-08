@@ -23,6 +23,8 @@ final class AppState {
     var legalSourceDocuments: [LegalSourceOption] = []
     var legalSourceSelection = LegalSourceSelection()
     var legalSourceStatus = "Ask Hermes to load clients."
+    var workflowExplanation: WorkflowExplanation?
+    var workflowExplanationStatus = "Ask Hermes to explain a workflow."
     var voiceCommand = ""
     var voicePrompt = "Tell me what workflow you want to build or run. Try: show workflows, show runs, check Hermes, check Pi, or help."
     var voiceLines: [String] = [
@@ -106,6 +108,29 @@ final class AppState {
         hermesEventStreamStatus = "Stream stopped."
     }
 
+    func approveHumanReview(runId: String, review: HumanReviewRecord) {
+        submitHumanReviewDecision(runId: runId, review: review, decision: "approve", note: "Approved from Apple Orchestrator AI.")
+    }
+
+    func requestHumanReviewChanges(runId: String, review: HumanReviewRecord) {
+        submitHumanReviewDecision(runId: runId, review: review, decision: "request_changes", note: "Changes requested from Apple Orchestrator AI.")
+    }
+
+    func stopWorkflowRun(runId: String) {
+        statusMessage = "Stopping \(runId)..."
+
+        Task {
+            do {
+                let response = try await hermesRunClient.stopRun(runId: runId)
+                updateRunStatus(runId: runId, status: response.status, output: response.output)
+                respond("I asked Hermes to stop the run.")
+            } catch {
+                statusMessage = error.localizedDescription
+                respond("I could not stop that run: \(error.localizedDescription)")
+            }
+        }
+    }
+
     func startDocumentOnboardingRun() {
         openModal(.runs)
         statusMessage = "Starting document onboarding..."
@@ -127,6 +152,21 @@ final class AppState {
             } catch {
                 statusMessage = error.localizedDescription
                 respond("I could not start document onboarding: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func explainWorkflow(_ workflow: WorkflowCatalogItem) {
+        workflowExplanationStatus = "Asking Hermes to explain \(workflow.name)..."
+
+        Task {
+            do {
+                workflowExplanation = try await hermesDisplayClient.explainWorkflow(workflow)
+                workflowExplanationStatus = "Hermes explained \(workflow.name)."
+                respond("Hermes explained \(workflow.name).")
+            } catch {
+                workflowExplanationStatus = error.localizedDescription
+                respond("I could not get the workflow explanation: \(error.localizedDescription)")
             }
         }
     }
@@ -388,6 +428,80 @@ final class AppState {
             if event.type.hasPrefix("run.") || event.type.hasPrefix("message.") {
                 workflowRuns[index].status = "running"
             }
+        }
+
+        workflowRunStore.saveRun(workflowRuns[index], repoRoot: repoRoot)
+    }
+
+    private func submitHumanReviewDecision(runId: String, review: HumanReviewRecord, decision: String, note: String) {
+        statusMessage = "Sending \(decision) to Hermes..."
+
+        Task {
+            do {
+                let response = try await hermesRunClient.submitApproval(runId: runId, review: review, decision: decision, note: note)
+                updateHumanReview(runId: runId, reviewId: review.id, decision: decision)
+                updateRunStatus(runId: runId, status: response.status, output: response.output)
+                respond("I sent the review decision to Hermes.")
+            } catch {
+                statusMessage = error.localizedDescription
+                respond("I could not send the review decision: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func updateHumanReview(runId: String, reviewId: String, decision: String) {
+        guard let index = workflowRuns.firstIndex(where: { $0.id == runId }), let review = workflowRuns[index].humanReview else {
+            return
+        }
+
+        let segmentStatus = decision == "approve" ? "approved" : "changes_requested"
+        workflowRuns[index].humanReview = HumanReviewRecord(
+            id: review.id,
+            status: segmentStatus,
+            title: review.title,
+            summary: review.summary,
+            segments: review.segments.map {
+                HumanReviewSegment(
+                    id: $0.id,
+                    label: $0.label,
+                    status: segmentStatus,
+                    decision: decision,
+                    summary: $0.summary
+                )
+            }
+        )
+
+        let event = WorkflowRunEvent(
+            timestamp: Self.isoTimestamp(),
+            type: "approval.responded",
+            runId: runId,
+            reviewId: reviewId,
+            rawHermesRunId: runId
+        )
+        workflowRuns[index].events.append(event)
+        workflowRunStore.appendEvent(event, repoRoot: repoRoot)
+        workflowRunStore.saveRun(workflowRuns[index], repoRoot: repoRoot)
+    }
+
+    private func updateRunStatus(runId: String, status: String, output: String?) {
+        guard let index = workflowRuns.firstIndex(where: { $0.id == runId }) else {
+            return
+        }
+
+        workflowRuns[index].status = status == "started" ? "running" : status
+        if ["completed", "failed", "cancelled", "stopped"].contains(status) {
+            workflowRuns[index].completedAt = Self.isoTimestamp()
+        }
+
+        if let output, !output.isEmpty {
+            workflowRuns[index].outputs = [
+                OutputEnvelope(
+                    id: "hermes-output",
+                    type: "markdown",
+                    title: "Hermes Output",
+                    content: output
+                )
+            ]
         }
 
         workflowRunStore.saveRun(workflowRuns[index], repoRoot: repoRoot)

@@ -77,6 +77,7 @@ private struct LiveHermesEventSubscriptionView: View {
 }
 
 private struct WorkflowRunCard: View {
+    @Environment(AppState.self) private var appState
     let run: WorkflowRunRecord
 
     var body: some View {
@@ -92,6 +93,16 @@ private struct WorkflowRunCard: View {
                 StatusBadge(text: run.status)
             }
 
+            HStack {
+                if run.status == "running" || run.status == "waiting_for_human" || run.status == "queued" {
+                    Button {
+                        appState.stopWorkflowRun(runId: run.id)
+                    } label: {
+                        Label("Stop", systemImage: "stop.circle")
+                    }
+                }
+            }
+
             LabeledContent("Run", value: run.id)
             LabeledContent("Profile", value: run.profileId)
             LabeledContent("Started", value: run.startedAt)
@@ -103,7 +114,7 @@ private struct WorkflowRunCard: View {
             }
 
             if let humanReview = run.humanReview {
-                HumanReviewBlock(review: humanReview)
+                HumanReviewBlock(runId: run.id, review: humanReview)
             }
 
             ForEach(run.outputs) { output in
@@ -161,6 +172,8 @@ private struct EventStreamBlock: View {
 }
 
 private struct HumanReviewBlock: View {
+    @Environment(AppState.self) private var appState
+    let runId: String
     let review: HumanReviewRecord
 
     var body: some View {
@@ -181,6 +194,23 @@ private struct HumanReviewBlock: View {
                         .foregroundStyle(.secondary)
                 }
                 .font(.callout)
+            }
+
+            if review.status == "requested" {
+                HStack {
+                    Button {
+                        appState.approveHumanReview(runId: runId, review: review)
+                    } label: {
+                        Label("Approve", systemImage: "checkmark.circle")
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button {
+                        appState.requestHumanReviewChanges(runId: runId, review: review)
+                    } label: {
+                        Label("Request Changes", systemImage: "arrow.uturn.backward.circle")
+                    }
+                }
             }
         }
         .padding(12)

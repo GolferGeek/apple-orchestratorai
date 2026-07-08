@@ -118,6 +118,15 @@ Preferred integration:
 5. Resolve human approvals with `POST /v1/runs/:run_id/approval`.
 6. Stop a run with `POST /v1/runs/:run_id/stop`.
 
+The first concrete request and response schemas are:
+
+- `schemas/workflows/run-start.v0.schema.json`
+- `schemas/workflows/run-status.v0.schema.json`
+- `schemas/workflows/approval-response.v0.schema.json`
+- `schemas/workflows/workflow-explanation.v0.schema.json`
+
+Human approval responses are intentionally generic. The app sends `review_id`, an overall decision, optional note, and segment decisions. Hermes owns how that response resumes or revises the workflow.
+
 Known Hermes run events include:
 
 - `message.delta`
@@ -166,6 +175,10 @@ The first concrete contract files are now:
 - `schemas/workflows/display-envelope.v0.schema.json`
 - `schemas/workflows/workflow-run.v0.schema.json`
 - `schemas/workflows/human-review.v0.schema.json`
+- `schemas/workflows/run-start.v0.schema.json`
+- `schemas/workflows/run-status.v0.schema.json`
+- `schemas/workflows/approval-response.v0.schema.json`
+- `schemas/workflows/workflow-explanation.v0.schema.json`
 - `test-fixtures/legal/document-onboarding/acme-renewal/run-completed.json`
 
 The Mac app renders those records through generic SwiftUI blocks:

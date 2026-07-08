@@ -48,12 +48,26 @@ private struct WorkflowCatalogCard: View {
             }
 
             if workflow.id == "document-onboarding" {
-                Button {
-                    appState.startDocumentOnboardingRun()
-                } label: {
-                    Label("Run Document Onboarding", systemImage: "play.circle.fill")
+                HStack {
+                    Button {
+                        appState.startDocumentOnboardingRun()
+                    } label: {
+                        Label("Run Document Onboarding", systemImage: "play.circle.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button {
+                        appState.explainWorkflow(workflow)
+                    } label: {
+                        Label("Explain", systemImage: "questionmark.circle")
+                    }
                 }
-                .buttonStyle(.borderedProminent)
+            } else {
+                Button {
+                    appState.explainWorkflow(workflow)
+                } label: {
+                    Label("Explain", systemImage: "questionmark.circle")
+                }
             }
 
             LabeledContent("Domain", value: workflow.domain)
@@ -64,9 +78,42 @@ private struct WorkflowCatalogCard: View {
             GenericTimelineBlock(title: "Stages", stages: workflow.stages.map {
                 WorkflowStageRecord(id: $0, name: $0.replacingOccurrences(of: "_", with: " ").capitalized, status: "defined", summary: "Defined in workflow JSON.")
             })
+
+            if appState.workflowExplanation?.workflowId == workflow.id {
+                WorkflowExplanationBlock(explanation: appState.workflowExplanation!)
+            } else if appState.workflowExplanationStatus.contains(workflow.name) {
+                Text(appState.workflowExplanationStatus)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(14)
         .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct WorkflowExplanationBlock: View {
+    let explanation: WorkflowExplanation
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(explanation.title)
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                StatusBadge(text: explanation.target.type)
+            }
+
+            Text(explanation.summary)
+                .foregroundStyle(.secondary)
+
+            ForEach(explanation.sections) { section in
+                GenericListBlock(title: section.heading, items: section.items)
+            }
+        }
+        .padding(12)
+        .background(.indigo.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }

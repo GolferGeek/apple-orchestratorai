@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestratorai.local/schemas/workflows/run-start.v0.schema.json",
+  "title": "Hermes Run Start Request v0",
+  "type": "object",
+  "required": ["input", "instructions", "session_id", "model"],
+  "properties": {
+    "input": {
+      "type": "string",
+      "description": "Natural-language or structured workflow launch instruction sent to Hermes."
+    },
+    "instructions": {
+      "type": "string",
+      "description": "System-level constraints for this run, including provider route limits."
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Stable Hermes session id for the workflow or app surface."
+    },
+    "model": {
+      "type": "string",
+      "description": "Preferred local model tag or logical model route allowed by the workflow policy."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional app/workflow metadata passed through for observability."
+    }
+  },
+  "additionalProperties": false
+}

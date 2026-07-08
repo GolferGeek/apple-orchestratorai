@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestratorai.local/schemas/workflows/approval-response.v0.schema.json",
+  "title": "Human Approval Response v0",
+  "type": "object",
+  "required": ["review_id", "decision", "segments"],
+  "properties": {
+    "review_id": {
+      "type": "string"
+    },
+    "decision": {
+      "enum": ["approve", "request_changes", "reject"]
+    },
+    "note": {
+      "type": ["string", "null"]
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "decision"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "decision": {
+            "enum": ["approve", "request_changes", "reject"]
+          },
+          "note": {
+            "type": ["string", "null"]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -200,3 +200,44 @@ struct LegalSourceSelection: Equatable {
     var matter: LegalSourceOption?
     var documents: [LegalSourceOption] = []
 }
+
+struct WorkflowExplanation: Identifiable, Codable, Equatable {
+    var id: String { workflowId + ":" + target.id }
+
+    let schemaVersion: String
+    let kind: String
+    let workflowId: String
+    let target: WorkflowExplanationTarget
+    let title: String
+    let summary: String
+    let sections: [WorkflowExplanationSection]
+    let actions: [WorkflowExplanationAction]
+
+    enum CodingKeys: String, CodingKey {
+        case schemaVersion = "schema_version"
+        case kind
+        case workflowId = "workflow_id"
+        case target
+        case title
+        case summary
+        case sections
+        case actions
+    }
+}
+
+struct WorkflowExplanationTarget: Codable, Equatable {
+    let type: String
+    let id: String
+}
+
+struct WorkflowExplanationSection: Identifiable, Codable, Equatable {
+    var id: String { heading }
+
+    let heading: String
+    let items: [String]
+}
+
+struct WorkflowExplanationAction: Identifiable, Codable, Equatable {
+    let id: String
+    let label: String
+}
