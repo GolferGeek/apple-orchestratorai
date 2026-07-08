@@ -1,0 +1,15 @@
+{"timestamp":"2026-07-08T12:46:18Z","type":"workflow.started","runId":"run-document-onboarding-acme-renewal-001","workflowId":"document-onboarding"}
+{"timestamp":"2026-07-08T12:46:18Z","type":"stage.started","runId":"run-document-onboarding-acme-renewal-001","stageId":"metadata"}
+{"timestamp":"2026-07-08T12:46:20Z","type":"stage.completed","runId":"run-document-onboarding-acme-renewal-001","stageId":"metadata","rawHermesRunId":"fixture-hermes-metadata"}
+{"timestamp":"2026-07-08T12:46:20Z","type":"stage.started","runId":"run-document-onboarding-acme-renewal-001","stageId":"classify"}
+{"timestamp":"2026-07-08T12:46:22Z","type":"stage.completed","runId":"run-document-onboarding-acme-renewal-001","stageId":"classify","rawHermesRunId":"fixture-hermes-classify"}
+{"timestamp":"2026-07-08T12:46:22Z","type":"stage.started","runId":"run-document-onboarding-acme-renewal-001","stageId":"specialists"}
+{"timestamp":"2026-07-08T12:46:24Z","type":"stage.completed","runId":"run-document-onboarding-acme-renewal-001","stageId":"specialists","rawHermesRunId":"fixture-hermes-specialists"}
+{"timestamp":"2026-07-08T12:46:24Z","type":"stage.started","runId":"run-document-onboarding-acme-renewal-001","stageId":"synthesis"}
+{"timestamp":"2026-07-08T12:46:25Z","type":"stage.completed","runId":"run-document-onboarding-acme-renewal-001","stageId":"synthesis","rawHermesRunId":"fixture-hermes-synthesis"}
+{"timestamp":"2026-07-08T12:46:25Z","type":"stage.started","runId":"run-document-onboarding-acme-renewal-001","stageId":"hitl_review"}
+{"timestamp":"2026-07-08T12:46:26Z","type":"human_review.completed","runId":"run-document-onboarding-acme-renewal-001","reviewId":"human-review-acme-renewal-001"}
+{"timestamp":"2026-07-08T12:46:26Z","type":"stage.completed","runId":"run-document-onboarding-acme-renewal-001","stageId":"hitl_review","rawHermesRunId":"fixture-hermes-hitl"}
+{"timestamp":"2026-07-08T12:46:26Z","type":"stage.started","runId":"run-document-onboarding-acme-renewal-001","stageId":"report"}
+{"timestamp":"2026-07-08T12:46:27Z","type":"stage.completed","runId":"run-document-onboarding-acme-renewal-001","stageId":"report","rawHermesRunId":"fixture-hermes-report"}
+{"timestamp":"2026-07-08T12:46:27Z","type":"workflow.completed","runId":"run-document-onboarding-acme-renewal-001"}

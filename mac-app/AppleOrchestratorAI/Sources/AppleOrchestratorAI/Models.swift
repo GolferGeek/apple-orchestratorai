@@ -90,6 +90,23 @@ struct WorkflowRunRecord: Identifiable, Decodable, Equatable {
     let stages: [WorkflowStageRecord]
     let humanReview: HumanReviewRecord?
     let outputs: [OutputEnvelope]
+    var events: [WorkflowRunEvent] = []
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case workflowId
+        case workflowName
+        case status
+        case profileId
+        case startedAt
+        case completedAt
+        case client
+        case matter
+        case stages
+        case humanReview
+        case outputs
+        case events
+    }
 }
 
 struct DisplayEntity: Decodable, Equatable {
@@ -125,4 +142,18 @@ struct OutputEnvelope: Identifiable, Decodable, Equatable {
     let type: String
     let title: String
     let content: String
+}
+
+struct WorkflowRunEvent: Identifiable, Decodable, Equatable {
+    var id: String {
+        "\(timestamp)-\(type)-\(stageId ?? reviewId ?? rawHermesRunId ?? runId)"
+    }
+
+    let timestamp: String
+    let type: String
+    let runId: String
+    let workflowId: String?
+    let stageId: String?
+    let reviewId: String?
+    let rawHermesRunId: String?
 }

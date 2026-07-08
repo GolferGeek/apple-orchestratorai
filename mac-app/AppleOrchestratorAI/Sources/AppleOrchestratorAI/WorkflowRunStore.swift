@@ -4,17 +4,18 @@ struct WorkflowRunStore {
     func load(repoRoot: URL?) -> [WorkflowRunRecord] {
         guard let repoRoot else { return [] }
 
+        let runtimeRoot = repoRoot.appending(path: ".runtime/apple-local-state", directoryHint: .isDirectory)
         let roots = [
-            repoRoot.appending(path: ".runtime/apple-local-state/runs", directoryHint: .isDirectory),
+            runtimeRoot.appending(path: "runs", directoryHint: .isDirectory),
             repoRoot.appending(path: "test-fixtures", directoryHint: .isDirectory)
         ]
 
         return roots
-            .flatMap(loadRuns)
+            .flatMap { loadRuns(root: $0, eventsRoot: runtimeRoot.appending(path: "events", directoryHint: .isDirectory)) }
             .sorted { $0.startedAt > $1.startedAt }
     }
 
-    private func loadRuns(root: URL) -> [WorkflowRunRecord] {
+    private func loadRuns(root: URL, eventsRoot: URL) -> [WorkflowRunRecord] {
         let fileManager = FileManager.default
         guard let enumerator = fileManager.enumerator(at: root, includingPropertiesForKeys: nil) else {
             return []
@@ -23,14 +24,41 @@ struct WorkflowRunStore {
         return enumerator
             .compactMap { $0 as? URL }
             .filter { $0.pathExtension == "json" }
-            .compactMap(loadRun)
+            .compactMap { loadRun(from: $0, eventsRoot: eventsRoot) }
     }
 
-    private func loadRun(from url: URL) -> WorkflowRunRecord? {
+    private func loadRun(from url: URL, eventsRoot: URL) -> WorkflowRunRecord? {
         guard let data = try? Data(contentsOf: url) else {
             return nil
         }
 
-        return try? JSONDecoder().decode(WorkflowRunRecord.self, from: data)
+        guard var run = try? JSONDecoder().decode(WorkflowRunRecord.self, from: data) else {
+            return nil
+        }
+
+        let sidecarEvents = url.deletingPathExtension().appendingPathExtension("events.jsonl")
+        run.events = loadEvents(runId: run.id, eventsRoot: eventsRoot)
+        if run.events.isEmpty {
+            run.events = loadEvents(from: sidecarEvents)
+        }
+        return run
+    }
+
+    private func loadEvents(runId: String, eventsRoot: URL) -> [WorkflowRunEvent] {
+        loadEvents(from: eventsRoot.appending(path: "\(runId).jsonl"))
+    }
+
+    private func loadEvents(from url: URL) -> [WorkflowRunEvent] {
+        guard let data = try? Data(contentsOf: url), let text = String(data: data, encoding: .utf8) else {
+            return []
+        }
+
+        let decoder = JSONDecoder()
+        return text
+            .split(separator: "\n")
+            .compactMap { line -> WorkflowRunEvent? in
+                guard let lineData = String(line).data(using: .utf8) else { return nil }
+                return try? decoder.decode(WorkflowRunEvent.self, from: lineData)
+            }
     }
 }

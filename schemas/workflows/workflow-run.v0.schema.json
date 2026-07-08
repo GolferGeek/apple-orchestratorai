@@ -39,6 +39,23 @@
       "type": "array",
       "items": { "$ref": "display-envelope.v0.schema.json#/$defs/output" }
     },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "type", "runId"],
+        "properties": {
+          "timestamp": { "type": "string", "format": "date-time" },
+          "type": { "type": "string" },
+          "runId": { "type": "string" },
+          "workflowId": { "type": "string" },
+          "stageId": { "type": "string" },
+          "reviewId": { "type": "string" },
+          "rawHermesRunId": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
     "rawHermesRunId": { "type": "string" },
     "rawEventUri": { "type": "string" }
   },

@@ -52,6 +52,10 @@ private struct WorkflowRunCard: View {
 
             GenericTimelineBlock(title: "Timeline", stages: run.stages)
 
+            if !run.events.isEmpty {
+                EventStreamBlock(events: run.events)
+            }
+
             if let humanReview = run.humanReview {
                 HumanReviewBlock(review: humanReview)
             }
@@ -62,6 +66,50 @@ private struct WorkflowRunCard: View {
         }
         .padding(14)
         .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct EventStreamBlock: View {
+    let events: [WorkflowRunEvent]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Event Stream")
+                .font(.subheadline.weight(.semibold))
+
+            ForEach(events) { event in
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack {
+                        Text(event.type)
+                            .font(.callout.weight(.medium))
+                        Spacer()
+                        Text(event.timestamp)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    HStack(spacing: 10) {
+                        if let stageId = event.stageId {
+                            Label(stageId, systemImage: "square.stack.3d.up")
+                        }
+                        if let reviewId = event.reviewId {
+                            Label(reviewId, systemImage: "person.crop.circle.badge.checkmark")
+                        }
+                        if let rawHermesRunId = event.rawHermesRunId, !rawHermesRunId.isEmpty {
+                            Label(rawHermesRunId, systemImage: "bolt.horizontal")
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+                .padding(10)
+                .background(Color(nsColor: .textBackgroundColor).opacity(0.75))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+        }
+        .padding(12)
+        .background(.purple.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
