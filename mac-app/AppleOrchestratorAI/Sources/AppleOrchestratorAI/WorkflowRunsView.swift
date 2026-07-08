@@ -169,6 +169,12 @@ private struct EventStreamBlock: View {
                         if let stageId = event.stageId {
                             Label(stageId, systemImage: "square.stack.3d.up")
                         }
+                        if let workUnitId = event.workUnitId {
+                            Label(workUnitId, systemImage: "hammer")
+                        }
+                        if let skillId = event.skillId {
+                            Label(skillId, systemImage: "puzzlepiece.extension")
+                        }
                         if let reviewId = event.reviewId {
                             Label(reviewId, systemImage: "person.crop.circle.badge.checkmark")
                         }
@@ -178,6 +184,32 @@ private struct EventStreamBlock: View {
                     }
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                    if let summary = event.summary {
+                        Text(summary)
+                            .font(.callout)
+                    }
+
+                    if let message = event.message {
+                        Text(message)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if let progress = event.progress {
+                        ProgressView(value: progress.current, total: progress.total) {
+                            Text("\(Int(progress.current)) of \(Int(progress.total)) \(progress.unit)")
+                                .font(.caption)
+                        }
+                    }
+
+                    if let outputs = event.outputs, !outputs.isEmpty {
+                        ForEach(outputs) { output in
+                            Label(output.title ?? output.id, systemImage: "doc.text")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
                 .padding(10)
                 .background(Color(nsColor: .textBackgroundColor).opacity(0.75))

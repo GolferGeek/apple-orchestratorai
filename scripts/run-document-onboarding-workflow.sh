@@ -25,22 +25,45 @@ run_stage() {
   local stage_skill="$3"
   local output_file="${STAGE_DIR}/${stage_id}.json"
 
-  python3 - "${EVENTS_FILE}" "${RUN_ID}" "${stage_id}" <<'PY'
+  python3 - "${EVENTS_FILE}" "${RUN_ID}" "${stage_id}" "${WORKFLOW}" <<'PY'
 import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-events_file, run_id, stage_id = sys.argv[1:4]
+events_file, run_id, stage_id, workflow_file = sys.argv[1:5]
+workflow = json.load(open(workflow_file))
+stage_details = {
+    "metadata": ("intake-and-metadata", "metadata-extraction", "extract-legal-metadata", "legal.shared.extract-document-metadata.v0"),
+    "classify": ("classification-and-specialist-routing", "clo-routing", "route-specialists", "legal.shared.clo-route-specialists.v0"),
+    "specialists": ("specialist-review", "specialist-lanes", "run-specialist-lanes", "legal.shared.specialist-review.v0"),
+    "synthesis": ("synthesis-and-review", "synthesize-findings", "synthesize-legal-findings", "legal.workflow.document-onboarding.synthesize-findings.v0"),
+    "hitl_review": ("synthesis-and-review", "attorney-review", "request-attorney-review", "workflow.request-human-review.v0"),
+    "report": ("report-and-routing", "render-output-packet", "render-document-onboarding-report", "workflow.render-output-packet.v0"),
+}
+graph_id, subgraph_id, work_unit_id, skill_id = stage_details[stage_id]
 event = {
     "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
     "type": "stage.started",
     "runId": run_id,
+    "workflowId": workflow["id"],
     "stageId": stage_id,
+    "graphId": graph_id,
+    "subgraphId": subgraph_id,
+    "workUnitId": work_unit_id,
+    "skillId": skill_id,
+    "status": "running",
+    "summary": f"{stage_id.replace('_', ' ').title()} started.",
+    "message": "Hermes is running the workflow skill for this stage.",
+    "progress": {"current": 0, "total": 1, "unit": "work_units"},
 }
 Path(events_file).parent.mkdir(parents=True, exist_ok=True)
 with Path(events_file).open("a") as handle:
     handle.write(json.dumps(event, separators=(",", ":")) + "\n")
+    unit_event = dict(event)
+    unit_event["timestamp"] = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    unit_event["type"] = "work_unit.started"
+    handle.write(json.dumps(unit_event, separators=(",", ":")) + "\n")
 PY
 
   prompt="$(python3 - "${WORKFLOW}" "${FIXTURE}" "${stage_id}" "${stage_name}" "${stage_skill}" <<'PY'

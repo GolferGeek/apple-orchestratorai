@@ -71,7 +71,18 @@ struct HermesEventClient {
             runId: object?["run_id"] as? String ?? object?["runId"] as? String ?? runId,
             workflowId: object?["workflow_id"] as? String ?? object?["workflowId"] as? String,
             stageId: object?["stage_id"] as? String ?? object?["stageId"] as? String,
+            graphId: object?["graph_id"] as? String ?? object?["graphId"] as? String,
+            subgraphId: object?["subgraph_id"] as? String ?? object?["subgraphId"] as? String,
+            workUnitId: object?["work_unit_id"] as? String ?? object?["workUnitId"] as? String,
+            skillId: object?["skill_id"] as? String ?? object?["skillId"] as? String,
             reviewId: object?["review_id"] as? String ?? object?["reviewId"] as? String,
+            status: object?["status"] as? String,
+            summary: object?["summary"] as? String,
+            message: object?["message"] as? String,
+            progress: decode(object?["progress"]),
+            metrics: decode(object?["metrics"]),
+            outputs: decodeOutputs(object?["outputs"]),
+            raw: object.map(Self.workflowEventObject),
             rawHermesRunId: object?["run_id"] as? String ?? runId
         )
     }
@@ -79,6 +90,44 @@ struct HermesEventClient {
     private func decodeObject(_ text: String) -> [String: Any]? {
         guard let data = text.data(using: .utf8) else { return nil }
         return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+    }
+
+    private func decode<T: Decodable>(_ value: Any?) -> T? {
+        guard let value, JSONSerialization.isValidJSONObject(value), let data = try? JSONSerialization.data(withJSONObject: value) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(T.self, from: data)
+    }
+
+    private func decodeOutputs(_ value: Any?) -> [WorkflowEventOutput]? {
+        decode(value)
+    }
+
+    private static func workflowEventObject(_ object: [String: Any]) -> [String: WorkflowEventValue] {
+        object.reduce(into: [:]) { result, pair in
+            result[pair.key] = workflowEventValue(pair.value)
+        }
+    }
+
+    private static func workflowEventValue(_ value: Any) -> WorkflowEventValue {
+        switch value {
+        case is NSNull:
+            return .null
+        case let value as Bool:
+            return .bool(value)
+        case let value as Int:
+            return .number(Double(value))
+        case let value as Double:
+            return .number(value)
+        case let value as String:
+            return .string(value)
+        case let value as [String: Any]:
+            return .object(workflowEventObject(value))
+        case let value as [Any]:
+            return .array(value.map(workflowEventValue))
+        default:
+            return .string(String(describing: value))
+        }
     }
 
     private static func timestamp() -> String {

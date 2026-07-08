@@ -50,7 +50,40 @@
           "runId": { "type": "string" },
           "workflowId": { "type": "string" },
           "stageId": { "type": "string" },
+          "graphId": { "type": "string" },
+          "subgraphId": { "type": "string" },
+          "workUnitId": { "type": "string" },
+          "skillId": { "type": "string" },
           "reviewId": { "type": "string" },
+          "status": { "type": "string" },
+          "summary": { "type": "string" },
+          "message": { "type": "string" },
+          "progress": {
+            "type": "object",
+            "required": ["current", "total", "unit"],
+            "properties": {
+              "current": { "type": "number" },
+              "total": { "type": "number" },
+              "unit": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "metrics": { "type": "object" },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "type"],
+              "properties": {
+                "id": { "type": "string" },
+                "type": { "type": "string" },
+                "uri": { "type": ["string", "null"] },
+                "title": { "type": ["string", "null"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "raw": { "type": "object" },
           "rawHermesRunId": { "type": "string" }
         },
         "additionalProperties": false

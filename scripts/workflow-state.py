@@ -14,6 +14,57 @@ STAGE_NAMES = {
     "report": "Report",
 }
 
+STAGE_DETAILS = {
+    "metadata": {
+        "graphId": "intake-and-metadata",
+        "subgraphId": "metadata-extraction",
+        "workUnitId": "extract-legal-metadata",
+        "skillId": "legal.shared.extract-document-metadata.v0",
+        "outputId": "documentsMetadata",
+        "outputType": "json",
+    },
+    "classify": {
+        "graphId": "classification-and-specialist-routing",
+        "subgraphId": "clo-routing",
+        "workUnitId": "route-specialists",
+        "skillId": "legal.shared.clo-route-specialists.v0",
+        "outputId": "routingDecision",
+        "outputType": "json",
+    },
+    "specialists": {
+        "graphId": "specialist-review",
+        "subgraphId": "specialist-lanes",
+        "workUnitId": "run-specialist-lanes",
+        "skillId": "legal.shared.specialist-review.v0",
+        "outputId": "specialistOutputs",
+        "outputType": "json",
+    },
+    "synthesis": {
+        "graphId": "synthesis-and-review",
+        "subgraphId": "synthesize-findings",
+        "workUnitId": "synthesize-legal-findings",
+        "skillId": "legal.workflow.document-onboarding.synthesize-findings.v0",
+        "outputId": "synthesis",
+        "outputType": "json",
+    },
+    "hitl_review": {
+        "graphId": "synthesis-and-review",
+        "subgraphId": "attorney-review",
+        "workUnitId": "request-attorney-review",
+        "skillId": "workflow.request-human-review.v0",
+        "outputId": "reviewPayload",
+        "outputType": "json",
+    },
+    "report": {
+        "graphId": "report-and-routing",
+        "subgraphId": "render-output-packet",
+        "workUnitId": "render-document-onboarding-report",
+        "skillId": "workflow.render-output-packet.v0",
+        "outputId": "document-onboarding-report",
+        "outputType": "markdown",
+    },
+}
+
 
 def now():
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -35,6 +86,36 @@ def append_event(events_file, event_type, **payload):
     event = {"timestamp": now(), "type": event_type, **payload}
     with target.open("a") as handle:
         handle.write(json.dumps(event, separators=(",", ":")) + "\n")
+
+
+def stage_payload(stage_id, run_id=None, workflow_id=None, status=None, summary=None, message=None, result_file=None):
+    detail = STAGE_DETAILS[stage_id]
+    payload = {
+        "stageId": stage_id,
+        "graphId": detail["graphId"],
+        "subgraphId": detail["subgraphId"],
+        "workUnitId": detail["workUnitId"],
+        "skillId": detail["skillId"],
+    }
+    if run_id:
+        payload["runId"] = run_id
+    if workflow_id:
+        payload["workflowId"] = workflow_id
+    if status:
+        payload["status"] = status
+    if summary:
+        payload["summary"] = summary
+    if message:
+        payload["message"] = message
+    payload["outputs"] = [
+        {
+            "id": detail["outputId"],
+            "type": detail["outputType"],
+            "uri": f"apple-local://runs/{run_id}/stage-results/{stage_id}.json" if run_id and result_file else None,
+            "title": STAGE_NAMES[stage_id],
+        }
+    ]
+    return payload
 
 
 def init_run(run_file, events_file, run_id, fixture_file):
@@ -68,7 +149,18 @@ def init_run(run_file, events_file, run_id, fixture_file):
         "outputs": [],
     }
     save(run_file, run)
-    append_event(events_file, "workflow.started", runId=run_id, workflowId=fixture["workflowId"])
+    document_count = len(fixture.get("fileSystemDocuments", {}).get("filePaths", []))
+    append_event(
+        events_file,
+        "workflow.started",
+        runId=run_id,
+        workflowId=fixture["workflowId"],
+        status="running",
+        summary="Document onboarding started.",
+        message=f"Resolving and reviewing {document_count} matter documents.",
+        progress={"current": 0, "total": len(STAGE_NAMES), "unit": "stages"},
+        metrics={"document_count": document_count},
+    )
 
 
 def mark_stage(run_file, events_file, stage_id, result_file):
@@ -84,6 +176,29 @@ def mark_stage(run_file, events_file, stage_id, result_file):
         raise SystemExit(f"Unknown stage id: {stage_id}")
 
     run["status"] = "waiting_for_human" if stage_id == "hitl_review" else "running"
+    completed_count = sum(1 for stage in run["stages"] if stage["status"] == "completed")
+    detail = STAGE_DETAILS[stage_id]
+
+    append_event(
+        events_file,
+        "work_unit.completed",
+        **stage_payload(
+            stage_id,
+            run_id=run["id"],
+            workflow_id=run["workflowId"],
+            status=result.get("status", "completed"),
+            summary=result.get("summary", ""),
+            message=result.get("output", ""),
+            result_file=result_file,
+        ),
+        progress={"current": completed_count, "total": len(run["stages"]), "unit": "stages"},
+        metrics={
+            "completed_stage_count": completed_count,
+            "remaining_stage_count": len(run["stages"]) - completed_count,
+        },
+        raw={"stageResult": result},
+        rawHermesRunId=result.get("_rawHermesRunId", ""),
+    )
 
     if stage_id == "hitl_review":
         run["humanReview"] = {
@@ -108,14 +223,36 @@ def mark_stage(run_file, events_file, stage_id, result_file):
                 },
             ],
         }
-        append_event(events_file, "human_review.completed", runId=run["id"], reviewId=run["humanReview"]["id"])
+        append_event(
+            events_file,
+            "human_review.completed",
+            runId=run["id"],
+            workflowId=run["workflowId"],
+            stageId=stage_id,
+            graphId=detail["graphId"],
+            subgraphId=detail["subgraphId"],
+            workUnitId=detail["workUnitId"],
+            skillId=detail["skillId"],
+            reviewId=run["humanReview"]["id"],
+            status="approved",
+            summary=run["humanReview"]["summary"],
+            message="Demo attorney review accepted all segments.",
+        )
 
     save(run_file, run)
     append_event(
         events_file,
         "stage.completed",
-        runId=run["id"],
-        stageId=stage_id,
+        **stage_payload(
+            stage_id,
+            run_id=run["id"],
+            workflow_id=run["workflowId"],
+            status=result.get("status", "completed"),
+            summary=result.get("summary", ""),
+            message=result.get("output", ""),
+            result_file=result_file,
+        ),
+        progress={"current": completed_count, "total": len(run["stages"]), "unit": "stages"},
         rawHermesRunId=result.get("_rawHermesRunId", ""),
     )
 
@@ -146,7 +283,28 @@ def finalize(run_file, events_file, envelope_file):
         "outputs": run["outputs"],
     }
     save(envelope_file, envelope)
-    append_event(events_file, "workflow.completed", runId=run["id"])
+    append_event(
+        events_file,
+        "workflow.completed",
+        runId=run["id"],
+        workflowId=run["workflowId"],
+        status="completed",
+        summary=summary,
+        message="Final document onboarding output packet is ready.",
+        progress={"current": len(run["stages"]), "total": len(run["stages"]), "unit": "stages"},
+        metrics={
+            "stage_count": len(run["stages"]),
+            "output_count": len(run["outputs"]),
+        },
+        outputs=[
+            {
+                "id": "output-summary",
+                "type": "markdown",
+                "uri": f"apple-local://runs/{run['id']}/outputs/output-summary.md",
+                "title": "Document Onboarding Complete",
+            }
+        ],
+    )
 
 
 def main():

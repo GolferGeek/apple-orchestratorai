@@ -173,6 +173,32 @@ The app should preserve the raw Hermes event envelope for audit/debugging, then 
 - final output
 - failure/cancellation
 
+## Skill Event Detail
+
+Skills should report progress and outputs to Hermes, and Hermes should emit one normalized workflow event envelope to the app. Skills should not write directly to the app database.
+
+The shared event schema is:
+
+```text
+schemas/workflows/workflow-event.v0.schema.json
+```
+
+Skill-aware events may include:
+
+- `graphId`
+- `subgraphId`
+- `workUnitId`
+- `skillId`
+- `status`
+- `summary`
+- `message`
+- `progress`
+- `metrics`
+- `outputs`
+- `raw`
+
+The app renders known fields generically and preserves `raw` for audit/debugging. Workflow-specific interpretation remains inside Hermes skills.
+
 ## Native Hermes vs App Display Contract
 
 Hermes' native API is the transport and lifecycle contract. The Apple display contract is a product-level layer on top of it.
@@ -195,6 +221,7 @@ The first concrete contract files are now:
 - `schemas/workflows/display-envelope.v0.schema.json`
 - `schemas/workflows/workflow-run.v0.schema.json`
 - `schemas/workflows/human-review.v0.schema.json`
+- `schemas/workflows/workflow-event.v0.schema.json`
 - `schemas/workflows/run-start.v0.schema.json`
 - `schemas/workflows/run-status.v0.schema.json`
 - `schemas/workflows/approval-response.v0.schema.json`

@@ -149,9 +149,9 @@ struct OutputEnvelope: Identifiable, Codable, Equatable {
     let content: String
 }
 
-struct WorkflowRunEvent: Identifiable, Codable, Equatable {
+struct WorkflowRunEvent: Identifiable, Codable, Equatable, Sendable {
     var id: String {
-        "\(timestamp)-\(type)-\(stageId ?? reviewId ?? rawHermesRunId ?? runId)"
+        "\(timestamp)-\(type)-\(workUnitId ?? stageId ?? reviewId ?? rawHermesRunId ?? runId)"
     }
 
     let timestamp: String
@@ -159,7 +159,18 @@ struct WorkflowRunEvent: Identifiable, Codable, Equatable {
     let runId: String
     let workflowId: String?
     let stageId: String?
+    let graphId: String?
+    let subgraphId: String?
+    let workUnitId: String?
+    let skillId: String?
     let reviewId: String?
+    let status: String?
+    let summary: String?
+    let message: String?
+    let progress: WorkflowEventProgress?
+    let metrics: [String: WorkflowEventValue]?
+    let outputs: [WorkflowEventOutput]?
+    let raw: [String: WorkflowEventValue]?
     let rawHermesRunId: String?
 
     init(
@@ -168,7 +179,18 @@ struct WorkflowRunEvent: Identifiable, Codable, Equatable {
         runId: String,
         workflowId: String? = nil,
         stageId: String? = nil,
+        graphId: String? = nil,
+        subgraphId: String? = nil,
+        workUnitId: String? = nil,
+        skillId: String? = nil,
         reviewId: String? = nil,
+        status: String? = nil,
+        summary: String? = nil,
+        message: String? = nil,
+        progress: WorkflowEventProgress? = nil,
+        metrics: [String: WorkflowEventValue]? = nil,
+        outputs: [WorkflowEventOutput]? = nil,
+        raw: [String: WorkflowEventValue]? = nil,
         rawHermesRunId: String? = nil
     ) {
         self.timestamp = timestamp
@@ -176,8 +198,93 @@ struct WorkflowRunEvent: Identifiable, Codable, Equatable {
         self.runId = runId
         self.workflowId = workflowId
         self.stageId = stageId
+        self.graphId = graphId
+        self.subgraphId = subgraphId
+        self.workUnitId = workUnitId
+        self.skillId = skillId
         self.reviewId = reviewId
+        self.status = status
+        self.summary = summary
+        self.message = message
+        self.progress = progress
+        self.metrics = metrics
+        self.outputs = outputs
+        self.raw = raw
         self.rawHermesRunId = rawHermesRunId
+    }
+}
+
+struct WorkflowEventProgress: Codable, Equatable, Sendable {
+    let current: Double
+    let total: Double
+    let unit: String
+}
+
+struct WorkflowEventOutput: Identifiable, Codable, Equatable, Sendable {
+    let id: String
+    let type: String
+    let uri: String?
+    let title: String?
+}
+
+enum WorkflowEventValue: Codable, Equatable, Sendable {
+    case string(String)
+    case number(Double)
+    case bool(Bool)
+    case object([String: WorkflowEventValue])
+    case array([WorkflowEventValue])
+    case null
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if container.decodeNil() {
+            self = .null
+        } else if let value = try? container.decode(Bool.self) {
+            self = .bool(value)
+        } else if let value = try? container.decode(Double.self) {
+            self = .number(value)
+        } else if let value = try? container.decode(String.self) {
+            self = .string(value)
+        } else if let value = try? container.decode([String: WorkflowEventValue].self) {
+            self = .object(value)
+        } else {
+            self = .array(try container.decode([WorkflowEventValue].self))
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let value):
+            try container.encode(value)
+        case .number(let value):
+            try container.encode(value)
+        case .bool(let value):
+            try container.encode(value)
+        case .object(let value):
+            try container.encode(value)
+        case .array(let value):
+            try container.encode(value)
+        case .null:
+            try container.encodeNil()
+        }
+    }
+
+    var displayValue: String {
+        switch self {
+        case .string(let value):
+            value
+        case .number(let value):
+            value.rounded() == value ? String(Int(value)) : String(value)
+        case .bool(let value):
+            String(value)
+        case .object:
+            "object"
+        case .array(let value):
+            "\(value.count) items"
+        case .null:
+            "null"
+        }
     }
 }
 
