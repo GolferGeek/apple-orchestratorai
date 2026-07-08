@@ -79,8 +79,20 @@ struct HermesRunClient {
         return try JSONDecoder().decode(HermesRunStatusResponse.self, from: data)
     }
 
+    func pauseRun(runId: String) async throws -> HermesRunStatusResponse {
+        try await transitionRun(runId: runId, action: "pause")
+    }
+
+    func resumeRun(runId: String) async throws -> HermesRunStatusResponse {
+        try await transitionRun(runId: runId, action: "resume")
+    }
+
     func stopRun(runId: String) async throws -> HermesRunStatusResponse {
-        var request = URLRequest(url: baseURL.appending(path: "v1/runs/\(runId)/stop"))
+        try await transitionRun(runId: runId, action: "stop")
+    }
+
+    private func transitionRun(runId: String, action: String) async throws -> HermesRunStatusResponse {
+        var request = URLRequest(url: baseURL.appending(path: "v1/runs/\(runId)/\(action)"))
         request.httpMethod = "POST"
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.timeoutInterval = 15

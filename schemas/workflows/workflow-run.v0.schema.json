@@ -19,7 +19,7 @@
     "id": { "type": "string" },
     "workflowId": { "type": "string" },
     "workflowName": { "type": "string" },
-    "status": { "enum": ["queued", "running", "waiting_for_human", "completed", "failed", "cancelled", "stopped"] },
+    "status": { "enum": ["queued", "running", "paused", "waiting_for_human", "completed", "failed", "cancelled", "stopped"] },
     "profileId": { "type": "string" },
     "startedAt": { "type": "string", "format": "date-time" },
     "completedAt": { "type": ["string", "null"], "format": "date-time" },

@@ -9,7 +9,7 @@
       "type": "string"
     },
     "status": {
-      "enum": ["queued", "started", "running", "waiting_for_human", "completed", "failed", "cancelled", "stopped"]
+      "enum": ["queued", "started", "running", "paused", "waiting_for_human", "completed", "failed", "cancelled", "stopped"]
     },
     "output": {
       "type": ["string", "null"]

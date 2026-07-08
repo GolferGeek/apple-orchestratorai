@@ -18,6 +18,7 @@ final class AppState {
     var liveHermesRunId = ""
     var liveHermesEvents: [WorkflowRunEvent] = []
     var hermesEventStreamStatus = "Not subscribed."
+    var activeHermesEventRunIds: [String] = []
     var legalSourceClients: [LegalSourceOption] = []
     var legalSourceMatters: [LegalSourceOption] = []
     var legalSourceDocuments: [LegalSourceOption] = []
@@ -40,7 +41,7 @@ final class AppState {
     @ObservationIgnored private let hermesRunClient = HermesRunClient()
     @ObservationIgnored private let hermesEventClient = HermesEventClient()
     @ObservationIgnored private let hermesDisplayClient = HermesDisplayClient()
-    @ObservationIgnored private var hermesEventTask: Task<Void, Never>?
+    @ObservationIgnored private var hermesEventTasks: [String: Task<Void, Never>] = [:]
 
     init() {
         repoRoot = RepositoryLocator.findRepoRoot()
@@ -71,16 +72,24 @@ final class AppState {
             return
         }
 
-        hermesEventTask?.cancel()
         liveHermesRunId = trimmedRunId
         liveHermesEvents = []
-        hermesEventStreamStatus = "Subscribing to \(trimmedRunId)..."
 
-        hermesEventTask = Task { [hermesEventClient] in
+        if hermesEventTasks[trimmedRunId] != nil {
+            hermesEventStreamStatus = "Already streaming \(trimmedRunId)."
+            return
+        }
+
+        hermesEventStreamStatus = "Subscribing to \(trimmedRunId)..."
+        activeHermesEventRunIds = (activeHermesEventRunIds + [trimmedRunId]).uniqued()
+
+        hermesEventTasks[trimmedRunId] = Task { [hermesEventClient] in
             do {
                 try await hermesEventClient.streamEvents(runId: trimmedRunId) { event in
                     await MainActor.run {
-                        self.liveHermesEvents.append(event)
+                        if self.liveHermesRunId == trimmedRunId {
+                            self.liveHermesEvents.append(event)
+                        }
                         self.workflowRunStore.appendEvent(event, repoRoot: self.repoRoot)
                         self.applyHermesEvent(event)
                         self.hermesEventStreamStatus = "Streaming \(trimmedRunId)"
@@ -89,23 +98,35 @@ final class AppState {
 
                 await MainActor.run {
                     self.hermesEventStreamStatus = "Stream ended for \(trimmedRunId)."
+                    self.clearHermesEventTask(runId: trimmedRunId)
                 }
             } catch is CancellationError {
                 await MainActor.run {
-                    self.hermesEventStreamStatus = "Stream cancelled."
+                    self.hermesEventStreamStatus = "Stream cancelled for \(trimmedRunId)."
+                    self.clearHermesEventTask(runId: trimmedRunId)
                 }
             } catch {
                 await MainActor.run {
                     self.hermesEventStreamStatus = error.localizedDescription
+                    self.clearHermesEventTask(runId: trimmedRunId)
                 }
             }
         }
     }
 
     func stopHermesEventStream() {
-        hermesEventTask?.cancel()
-        hermesEventTask = nil
-        hermesEventStreamStatus = "Stream stopped."
+        let trimmedRunId = liveHermesRunId.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedRunId.isEmpty, let task = hermesEventTasks[trimmedRunId] {
+            task.cancel()
+            clearHermesEventTask(runId: trimmedRunId)
+            hermesEventStreamStatus = "Stream stopped for \(trimmedRunId)."
+            return
+        }
+
+        hermesEventTasks.values.forEach { $0.cancel() }
+        hermesEventTasks.removeAll()
+        activeHermesEventRunIds = []
+        hermesEventStreamStatus = "All streams stopped."
     }
 
     func approveHumanReview(runId: String, review: HumanReviewRecord) {
@@ -116,18 +137,22 @@ final class AppState {
         submitHumanReviewDecision(runId: runId, review: review, decision: "request_changes", note: "Changes requested from Apple Orchestrator AI.")
     }
 
-    func stopWorkflowRun(runId: String) {
-        statusMessage = "Stopping \(runId)..."
+    func pauseWorkflowRun(runId: String) {
+        transitionWorkflowRun(runId: runId, actionVerb: "Pausing", successMessage: "I asked Hermes to pause the run.") { [self] in
+            try await self.hermesRunClient.pauseRun(runId: runId)
+        }
+    }
 
-        Task {
-            do {
-                let response = try await hermesRunClient.stopRun(runId: runId)
-                updateRunStatus(runId: runId, status: response.status, output: response.output)
-                respond("I asked Hermes to stop the run.")
-            } catch {
-                statusMessage = error.localizedDescription
-                respond("I could not stop that run: \(error.localizedDescription)")
-            }
+    func resumeWorkflowRun(runId: String) {
+        transitionWorkflowRun(runId: runId, actionVerb: "Resuming", successMessage: "I asked Hermes to resume the run.") { [self] in
+            try await self.hermesRunClient.resumeRun(runId: runId)
+        }
+        subscribeToHermesRunEvents(runId: runId)
+    }
+
+    func stopWorkflowRun(runId: String) {
+        transitionWorkflowRun(runId: runId, actionVerb: "Stopping", successMessage: "I asked Hermes to stop the run.") { [self] in
+            try await self.hermesRunClient.stopRun(runId: runId)
         }
     }
 
@@ -433,6 +458,31 @@ final class AppState {
         workflowRunStore.saveRun(workflowRuns[index], repoRoot: repoRoot)
     }
 
+    private func clearHermesEventTask(runId: String) {
+        hermesEventTasks[runId] = nil
+        activeHermesEventRunIds.removeAll { $0 == runId }
+    }
+
+    private func transitionWorkflowRun(
+        runId: String,
+        actionVerb: String,
+        successMessage: String,
+        operation: @escaping () async throws -> HermesRunStatusResponse
+    ) {
+        statusMessage = "\(actionVerb) \(runId)..."
+
+        Task {
+            do {
+                let response = try await operation()
+                updateRunStatus(runId: runId, status: response.status, output: response.output)
+                respond(successMessage)
+            } catch {
+                statusMessage = error.localizedDescription
+                respond("Hermes could not update that run: \(error.localizedDescription)")
+            }
+        }
+    }
+
     private func submitHumanReviewDecision(runId: String, review: HumanReviewRecord, decision: String, note: String) {
         statusMessage = "Sending \(decision) to Hermes..."
 
@@ -556,4 +606,11 @@ final class AppState {
         ISO8601DateFormatter().string(from: Date())
     }
 
+}
+
+private extension Array where Element: Hashable {
+    func uniqued() -> [Element] {
+        var seen = Set<Element>()
+        return filter { seen.insert($0).inserted }
+    }
 }

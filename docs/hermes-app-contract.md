@@ -116,7 +116,25 @@ Preferred integration:
 3. Subscribe to `GET /v1/runs/:run_id/events`.
 4. Poll or reconcile with `GET /v1/runs/:run_id` when the app reconnects.
 5. Resolve human approvals with `POST /v1/runs/:run_id/approval`.
-6. Stop a run with `POST /v1/runs/:run_id/stop`.
+6. Pause a resumable run with `POST /v1/runs/:run_id/pause`.
+7. Resume a paused run with `POST /v1/runs/:run_id/resume`.
+8. Stop a run with `POST /v1/runs/:run_id/stop`.
+
+Run ids are the durable lifecycle handles. The app may have many active run records and many active event subscriptions, one per `run_id`. Hermes owns actual scheduling and concurrency. On local Ollama routes, Hermes may run workflows concurrently, serialize model-bound work, or queue work based on model capacity, available memory, workflow policy, and tool safety. The app should not assume parallel execution just because multiple runs are active.
+
+Lifecycle statuses:
+
+- `queued`
+- `started`
+- `running`
+- `paused`
+- `waiting_for_human`
+- `completed`
+- `failed`
+- `cancelled`
+- `stopped`
+
+`paused` means Hermes intentionally preserved resumable run state. `waiting_for_human` means Hermes is blocked on a human checkpoint and should be resumed through the approval contract, not generic resume.
 
 The first concrete request and response schemas are:
 
@@ -132,6 +150,8 @@ Known Hermes run events include:
 - `message.delta`
 - `approval.request`
 - `approval.responded`
+- `run.paused`
+- `run.resumed`
 - `run.completed`
 - `run.failed`
 - `run.cancelled`

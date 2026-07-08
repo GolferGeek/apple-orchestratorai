@@ -96,10 +96,29 @@ private struct WorkflowRunCard: View {
             HStack {
                 if run.status == "running" || run.status == "waiting_for_human" || run.status == "queued" {
                     Button {
+                        appState.pauseWorkflowRun(runId: run.id)
+                    } label: {
+                        Label("Pause", systemImage: "pause.circle")
+                    }
+
+                    Button {
                         appState.stopWorkflowRun(runId: run.id)
                     } label: {
                         Label("Stop", systemImage: "stop.circle")
                     }
+                }
+
+                if run.status == "paused" {
+                    Button {
+                        appState.resumeWorkflowRun(runId: run.id)
+                    } label: {
+                        Label("Resume", systemImage: "play.circle")
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+
+                if appState.activeHermesEventRunIds.contains(run.id) {
+                    StatusBadge(text: "streaming")
                 }
             }
 
