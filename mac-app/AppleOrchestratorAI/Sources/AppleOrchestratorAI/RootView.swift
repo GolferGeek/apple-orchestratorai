@@ -85,6 +85,8 @@ struct RootView: View {
                 WorkflowCatalogView()
             case .runs:
                 WorkflowRunsView()
+            case .legalSource:
+                LegalSourcePickerView()
             }
         }
     }

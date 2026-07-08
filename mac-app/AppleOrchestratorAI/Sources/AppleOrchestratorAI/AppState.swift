@@ -18,6 +18,11 @@ final class AppState {
     var liveHermesRunId = ""
     var liveHermesEvents: [WorkflowRunEvent] = []
     var hermesEventStreamStatus = "Not subscribed."
+    var legalSourceClients: [LegalSourceOption] = []
+    var legalSourceMatters: [LegalSourceOption] = []
+    var legalSourceDocuments: [LegalSourceOption] = []
+    var legalSourceSelection = LegalSourceSelection()
+    var legalSourceStatus = "Ask Hermes to load clients."
     var voiceCommand = ""
     var voicePrompt = "Tell me what workflow you want to build or run. Try: show workflows, show runs, check Hermes, check Pi, or help."
     var voiceLines: [String] = [
@@ -32,6 +37,7 @@ final class AppState {
     private let workflowRunStore = WorkflowRunStore()
     @ObservationIgnored private let hermesRunClient = HermesRunClient()
     @ObservationIgnored private let hermesEventClient = HermesEventClient()
+    @ObservationIgnored private let hermesDisplayClient = HermesDisplayClient()
     @ObservationIgnored private var hermesEventTask: Task<Void, Never>?
 
     init() {
@@ -107,7 +113,7 @@ final class AppState {
         Task {
             do {
                 let response = try await hermesRunClient.startRun(
-                    input: Self.documentOnboardingPrompt(),
+                    input: documentOnboardingPrompt(),
                     model: "qwen3.6:35b-a3b-nvfp4",
                     sessionId: "apple-orchestratorai-document-onboarding"
                 )
@@ -122,6 +128,60 @@ final class AppState {
                 statusMessage = error.localizedDescription
                 respond("I could not start document onboarding: \(error.localizedDescription)")
             }
+        }
+    }
+
+    func loadLegalClients() {
+        legalSourceStatus = "Asking Hermes for clients..."
+        Task {
+            do {
+                legalSourceClients = try await hermesDisplayClient.listLegalSourceOptions(kind: .clients)
+                legalSourceStatus = "Hermes returned \(legalSourceClients.count) clients."
+            } catch {
+                legalSourceStatus = error.localizedDescription
+            }
+        }
+    }
+
+    func selectLegalClient(_ client: LegalSourceOption) {
+        legalSourceSelection.client = client
+        legalSourceSelection.matter = nil
+        legalSourceSelection.documents = []
+        legalSourceMatters = []
+        legalSourceDocuments = []
+        legalSourceStatus = "Asking Hermes for matters..."
+
+        Task {
+            do {
+                legalSourceMatters = try await hermesDisplayClient.listLegalSourceOptions(kind: .matters, parentId: client.id)
+                legalSourceStatus = "Hermes returned \(legalSourceMatters.count) matters for \(client.label)."
+            } catch {
+                legalSourceStatus = error.localizedDescription
+            }
+        }
+    }
+
+    func selectLegalMatter(_ matter: LegalSourceOption) {
+        legalSourceSelection.matter = matter
+        legalSourceSelection.documents = []
+        legalSourceDocuments = []
+        legalSourceStatus = "Asking Hermes for documents..."
+
+        Task {
+            do {
+                legalSourceDocuments = try await hermesDisplayClient.listLegalSourceOptions(kind: .documents, parentId: matter.id)
+                legalSourceStatus = "Hermes returned \(legalSourceDocuments.count) documents for \(matter.label)."
+            } catch {
+                legalSourceStatus = error.localizedDescription
+            }
+        }
+    }
+
+    func toggleLegalDocument(_ document: LegalSourceOption) {
+        if let index = legalSourceSelection.documents.firstIndex(where: { $0.id == document.id }) {
+            legalSourceSelection.documents.remove(at: index)
+        } else {
+            legalSourceSelection.documents.append(document)
         }
     }
 
@@ -183,6 +243,10 @@ final class AppState {
             respond("Opening workflows.")
         } else if normalized.contains("run document onboarding") || normalized.contains("start document onboarding") {
             startDocumentOnboardingRun()
+        } else if normalized.contains("legal source") || normalized.contains("pick client") || normalized.contains("select client") || normalized.contains("client matter") {
+            openModal(.legalSource)
+            loadLegalClients()
+            respond("Opening the legal source picker. Hermes will provide the client and matter lists.")
         } else if normalized.contains("show runs") || normalized.contains("current run") || normalized.contains("workflow runs") || normalized.contains("show outputs") || normalized.contains("events") {
             refreshLocalState()
             openModal(.runs)
@@ -329,8 +393,20 @@ final class AppState {
         workflowRunStore.saveRun(workflowRuns[index], repoRoot: repoRoot)
     }
 
-    private static func documentOnboardingPrompt() -> String {
-        """
+    private func documentOnboardingPrompt() -> String {
+        if let client = legalSourceSelection.client, let matter = legalSourceSelection.matter {
+            let documentIds = legalSourceSelection.documents.map(\.id).joined(separator: ", ")
+            return """
+            Run the Apple Orchestrator AI document-onboarding workflow in local-only mode.
+            Resolve selected legal source references through Hermes/MCP, not through the frontend.
+            Client id: \(client.id)
+            Matter id: \(matter.id)
+            Document ids: \(documentIds.isEmpty ? "all selected matter documents" : documentIds)
+            Return concise progress and final output. Do not call external model providers.
+            """
+        }
+
+        return """
         Run the Apple Orchestrator AI document-onboarding workflow in local-only demo mode.
         Use the Acme Robotics LLC / Vendor Agreement Renewal fixture.
         Return concise progress and final output. Do not call external model providers.

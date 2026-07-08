@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "legal.shared.list-legal-source-options.v0",
+  "name": "List Legal Source Options",
+  "namespace": "legal.shared",
+  "status": "dev",
+  "summary": "Return client, matter, or document picker options for the Apple app without making the frontend know the backing data source.",
+  "inputs": {
+    "kind": "clients|matters|documents",
+    "parentId": "string?",
+    "sourceHint": "string?",
+    "searchText": "string?"
+  },
+  "outputs": {
+    "pickerOptions": "schemas/workflows/picker-options.v0.schema.json"
+  },
+  "sourceResolution": [
+    "apple-local-state",
+    "local-fixture",
+    "sql-server-mcp",
+    "supabase-mcp",
+    "document-management-mcp",
+    "firm-specific-mcp"
+  ],
+  "guardrails": [
+    "The Apple app must not query client, matter, or document stores directly.",
+    "Return logical ids and display labels only; keep connector credentials inside Hermes/MCP configuration.",
+    "If a backing source is missing, return a picker response that explains the required connector instead of failing silently."
+  ]
+}

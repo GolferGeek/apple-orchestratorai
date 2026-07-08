@@ -201,3 +201,29 @@ The Mac app now has the first native run-start path:
 6. Incoming events update `AppState` and are mirrored to `.runtime/apple-local-state/events/{run_id}.jsonl`.
 
 This keeps Hermes as the event source and SwiftUI as the reactive renderer. The local state files remain the recovery/audit mirror.
+
+## Legal Source Picker Contract
+
+The Apple app must not query client, matter, or document stores directly.
+
+For document onboarding and similar workflows, the app renders a generic picker and asks Hermes for each list:
+
+1. `clients`
+2. `matters` for a selected client id
+3. `documents` for a selected matter id
+
+Hermes owns source resolution. The backing source may be Apple local state, a local fixture, SQL Server through MCP, Supabase through MCP, a document management MCP, or a firm-specific connector. The app only renders the returned picker options and sends selected ids back to Hermes when starting the workflow.
+
+The picker response schema is:
+
+```text
+schemas/workflows/picker-options.v0.schema.json
+```
+
+The first skill contract is:
+
+```text
+skills/legal/shared/list-legal-source-options.skill.json
+```
+
+The Mac app surface is intentionally generic: it shows clients, matters, and documents, but it does not know how those were discovered.

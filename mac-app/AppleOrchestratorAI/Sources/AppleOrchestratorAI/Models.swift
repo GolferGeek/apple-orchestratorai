@@ -26,6 +26,7 @@ enum ModalSurface: String, Identifiable {
     case runtime
     case workflows
     case runs
+    case legalSource
 
     var id: String { rawValue }
 
@@ -41,6 +42,8 @@ enum ModalSurface: String, Identifiable {
             "Workflows"
         case .runs:
             "Runs"
+        case .legalSource:
+            "Legal Source"
         }
     }
 
@@ -56,6 +59,8 @@ enum ModalSurface: String, Identifiable {
             "list.bullet.rectangle"
         case .runs:
             "waveform.path.ecg.rectangle"
+        case .legalSource:
+            "folder.badge.gearshape"
         }
     }
 }
@@ -174,4 +179,24 @@ struct WorkflowRunEvent: Identifiable, Codable, Equatable {
         self.reviewId = reviewId
         self.rawHermesRunId = rawHermesRunId
     }
+}
+
+enum LegalSourceKind: String, Codable, Equatable {
+    case clients
+    case matters
+    case documents
+}
+
+struct LegalSourceOption: Identifiable, Codable, Equatable {
+    let id: String
+    let label: String
+    let subtitle: String
+    let kind: LegalSourceKind
+    let source: String
+}
+
+struct LegalSourceSelection: Equatable {
+    var client: LegalSourceOption?
+    var matter: LegalSourceOption?
+    var documents: [LegalSourceOption] = []
 }

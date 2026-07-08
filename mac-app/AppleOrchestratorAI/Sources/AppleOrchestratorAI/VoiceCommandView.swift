@@ -118,6 +118,12 @@ struct VoiceCommandView: View {
             }
 
             Button {
+                appState.runQuickCommand("legal source picker")
+            } label: {
+                Label("Sources", systemImage: "folder.badge.gearshape")
+            }
+
+            Button {
                 appState.runQuickCommand("run document onboarding")
             } label: {
                 Label("Run Onboarding", systemImage: "play.circle")

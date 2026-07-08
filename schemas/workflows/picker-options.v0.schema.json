@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestratorai.local/schemas/workflows/picker-options.v0.schema.json",
+  "title": "Picker Options v0",
+  "type": "object",
+  "required": ["kind", "source", "items"],
+  "properties": {
+    "kind": {
+      "const": "picker.options"
+    },
+    "source": {
+      "type": "string",
+      "description": "Logical source resolved by Hermes, such as legal-matter-source, sql-server-mcp, supabase-mcp, local-fixture, or dms-mcp."
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "subtitle"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "subtitle": { "type": "string" },
+          "metadata": { "type": "object" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
