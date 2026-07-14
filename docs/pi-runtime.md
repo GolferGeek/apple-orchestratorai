@@ -1,21 +1,26 @@
 # Pi Runtime
 
-Pi is an optional lightweight agent harness/workbench beside Hermes.
+Pi is the preferred workflow execution harness for Apple Orchestrator AI.
 
-Hermes remains the product runtime for workflow execution, skills, run state, approvals, and event transport. Pi is added as a developer/admin workbench for editing and testing internals without turning normal workflow operation into a terminal experience.
+Hermes remains in the repository as temporary scaffolding and a useful reference while Pi catches up. New workflow execution work should target Pi first. Once Pi covers workflow launch, progress events, human review, outputs, and run recovery, Hermes can be removed from this app and used separately for Apple Assistant-style work.
 
 ## Intended Role
 
 Pi should be used for:
 
+- workflow execution
+- workflow observability
+- work-team and agent orchestration through Apple Orchestrator extensions
+- skill authoring and invocation
+- MCP/tool-driven task execution
+- human review checkpoints through app-normalized events
 - skill authoring and repair
 - workflow JSON editing and validation
 - prompt/template experiments
 - local model behavior tests
-- app/Hermes integration debugging
 - course-style "build the system with the agent" work
 
-Pi should not be the first execution runtime for legal workflows. If the product needs durable run state, human approval, MCP resource governance, or workflow observability, route that through Hermes and the Apple app contract.
+The Apple app should not expose Pi as a terminal. Pi is the underlying runtime. The app renders workflow state, asks for human decisions, and sends typed launch/action payloads.
 
 ## Install Shape
 
@@ -84,6 +89,64 @@ The RPC protocol supports commands such as:
 
 The app must parse strict LF-delimited JSONL. It should preserve raw events for diagnostics and normalize only the subset it renders.
 
+## Event Wrapper
+
+Pi emits JSONL protocol events. The app should not render Pi events directly. A thin runtime adapter wraps them into the shared workflow event contract:
+
+```text
+Pi JSONL event -> PiRuntimeEvent -> workflow-event.v0 -> SwiftUI
+```
+
+The wrapper must add our missing product context:
+
+- `runId`
+- `workflowId`
+- `stageId`
+- `workUnitId`
+- `skillId`
+- `teamId`
+- `roleId`
+- `sessionId`
+- `commandId`, when known
+
+Pi RPC streaming events are not always tagged with the originating command id. For concurrent workflow execution, the safe approach is one Pi RPC worker per active run, work unit, or team role, or an app-owned wrapper that injects correlation metadata before events enter the app database.
+
+The first normalized event mapping is:
+
+| Pi event | Workflow event |
+| --- | --- |
+| `agent_start` | `work_unit.started` or `workflow.started` |
+| `agent_end` | `work_unit.completed` or `workflow.completed` |
+| `turn_start` | `runtime.turn.started` |
+| `turn_end` | `runtime.turn.completed` |
+| `message_start` | `runtime.message.started` |
+| `message_update` | `runtime.message.updated` |
+| `message_end` | `runtime.message.completed` |
+| `tool_execution_start` | `tool.started` |
+| `tool_execution_update` | `tool.updated` |
+| `tool_execution_end` | `tool.completed` |
+| `queue_update` | `runtime.queue.updated` |
+| `compaction_start` | `runtime.compaction.started` |
+| `compaction_end` | `runtime.compaction.completed` |
+| `auto_retry_start` | `runtime.retry.started` |
+| `auto_retry_end` | `runtime.retry.completed` |
+| `extension_error` | `runtime.error` |
+| `extension_ui_request` | `human_review.requested` or `runtime.ui.requested` |
+
+Human-facing workflow screens should mostly render the workflow/stage/work-unit/human-review/output events. The raw Pi runtime events remain available in the advanced runtime view and in audit files.
+
+The wrapper schema lives at:
+
+```text
+schemas/runtime/pi-runtime-event.v0.schema.json
+```
+
+The normalized workflow event schema remains:
+
+```text
+schemas/workflows/workflow-event.v0.schema.json
+```
+
 ## Admin Frontend
 
 The Mac app should include a small admin/workbench frontend for Pi, initially hidden behind an advanced or developer mode.
@@ -113,24 +176,67 @@ Therefore:
 - destructive updates should go through the app's runtime manager
 - credentials should stay in app-governed storage or explicitly scoped Pi config
 
-Pi can propose changes to app internals, workflow files, Hermes skills, or Ollama/Hermes runtime configuration. The Apple app should approve, apply, test, and rollback those changes.
+Pi can propose changes to app internals, workflow files, skills, or Ollama/runtime configuration. The Apple app should approve, apply, test, and rollback those changes.
 
 ## Relationship to Hermes
 
-Use Hermes for:
+Keep Hermes temporarily for:
 
-- workflow execution
-- workflow observability
-- human approval checkpoints
-- long-running/ambient work
-- MCP-governed resource access
-- runtime event streams
+- reference contracts already built in this repo
+- comparison while Pi reaches workflow parity
+- possible reuse in the separate Apple Assistant app
 
 Use Pi for:
 
-- local agent workbench
+- Apple Orchestrator AI workflow execution
+- agent/team coordination
+- skill execution
+- event-stream normalization
+- local agent workbench and admin tooling
 - authoring/debugging workflows and skills
-- experimenting with minimal harness behavior
-- repairing generated source/config files
 
-If Hermes later exposes or adopts Pi-compatible extension surfaces, the app can collapse some of this boundary. Until then, keep Pi optional and behind admin mode.
+Once Pi can run document onboarding end to end through the shared workflow-event contract, remove Hermes from the core product path.
+
+## Project Resource Contract
+
+Workflow execution should use Pi's project-level resource discovery for native resources and one explicit Apple Orchestrator convention for agent specs:
+
+```text
+.pi/
+  agents/
+    legal-document-onboarding-coordinator.md
+    legal-source-resolver.md
+    legal-document-intake-agent.md
+    legal-metadata-analyst.md
+    legal-clo-router.md
+    legal-*-specialist.md
+    legal-synthesis-agent.md
+    legal-quality-reviewer.md
+    legal-arbitrator.md
+    legal-hitl-coordinator.md
+    legal-report-writer.md
+    legal-output-validator.md
+  skills/
+    legal-document-source/SKILL.md
+    legal-document-intake/SKILL.md
+    legal-metadata-extraction/SKILL.md
+    legal-clo-routing/SKILL.md
+    legal-specialist-review/SKILL.md
+    legal-synthesis/SKILL.md
+    legal-human-review/SKILL.md
+    legal-output-packet/SKILL.md
+  prompts/
+    document-onboarding.md
+```
+
+Pi natively discovers `.pi/skills`, `.pi/extensions`, and `.pi/prompts`.
+
+Pi does not natively discover `.pi/agents`. That folder is an Apple Orchestrator convention consumed by `.pi/extensions/workflow-tools/index.ts`. The extension loads agent specs, appends their prompt bodies to isolated Pi child processes, applies their tool allowlists, and selects their frontmatter model.
+
+The app's workflow JSON remains the catalog and output contract. The executable layer is the workflow agent spec, Pi skills, extension tools, and child Pi sessions.
+
+The full contract is documented in:
+
+```text
+docs/apple-orchestrator-pi-contract.md
+```

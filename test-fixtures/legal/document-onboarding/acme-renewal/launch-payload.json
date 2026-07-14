@@ -8,7 +8,13 @@
   "modelPolicy": {
     "defaultRoute": "local",
     "sovereignty": "local-only",
-    "defaultLocalModel": "qwen3.6:35b-a3b-nvfp4",
+    "defaultLocalModel": "qwen3.6:35b-mlx",
+    "modelTiers": {
+      "fast": "gemma4:e2b-mlx",
+      "standard": "gemma4:e4b-mlx",
+      "reasoning": "qwen3.6:27b-mlx",
+      "deep": "qwen3.6:35b-mlx"
+    },
     "allowedRoutes": ["local"],
     "fallbackBehavior": "fail-with-explanation"
   },
@@ -75,7 +81,7 @@
     }
   ],
   "instructions": [
-    "Resolve client, matter, and document references inside Hermes.",
+    "Resolve client, matter, and document references through Pi skills and workflow tools.",
     "Do not let the frontend access source stores directly.",
     "Emit workflow-event.v0 compatible progress events.",
     "Pause for human review when the workflow asks for it.",

@@ -50,7 +50,6 @@ check_command "hdiutil" "hdiutil"
 status ""
 
 status "Runtime tools"
-check_command_or_path "Hermes" "hermes" "$ROOT_DIR/.runtime/venvs/hermes-dev/bin/hermes"
 check_command "Pi" "pi"
 check_command "Ollama" "ollama"
 status ""
@@ -71,9 +70,12 @@ if command -v ollama >/dev/null 2>&1; then
   status ""
 fi
 
-status "Workflow JSON"
-python3 -m json.tool "$ROOT_DIR/workflows/legal/document-onboarding.workflow.json" >/dev/null
-status "ok: document-onboarding.workflow.json is valid JSON"
+status "Workflow agent"
+if [[ -s "$ROOT_DIR/workflows/legal/document-onboarding.workflow-agent.md" ]]; then
+  status "ok: document-onboarding.workflow-agent.md found"
+else
+  status "missing: document-onboarding.workflow-agent.md"
+fi
 
 status ""
 status "done"

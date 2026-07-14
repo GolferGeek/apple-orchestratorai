@@ -25,16 +25,16 @@ case "${TIER}" in
     ;;
   core)
     models=(
-      "qwen3.6:35b-a3b-nvfp4"
-      "qwen3.6:35b-a3b-coding-nvfp4"
+      "qwen3.6:35b-mlx"
+      "qwen3.6:27b-mlx"
       "gemma4:e2b-mlx"
       "gemma4:e4b-mlx"
     )
     ;;
   workstation)
     models=(
-      "qwen3.6:35b-a3b-nvfp4"
-      "qwen3.6:35b-a3b-coding-nvfp4"
+      "qwen3.6:35b-mlx"
+      "qwen3.6:27b-mlx"
       "gemma4:e2b-mlx"
       "gemma4:e4b-mlx"
       "deepseek-r1:70b"
@@ -42,8 +42,8 @@ case "${TIER}" in
     ;;
   full)
     models=(
-      "qwen3.6:35b-a3b-nvfp4"
-      "qwen3.6:35b-a3b-coding-nvfp4"
+      "qwen3.6:35b-mlx"
+      "qwen3.6:27b-mlx"
       "gemma4:e2b-mlx"
       "gemma4:e4b-mlx"
       "deepseek-r1:70b"
@@ -68,4 +68,4 @@ done
 
 echo
 echo "Installed Apple-optimized model tags:"
-OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11435}" "${OLLAMA_BIN}" list | awk 'NR == 1 || $1 ~ /^(qwen3[.]6:35b-a3b(-coding)?-nvfp4|gemma4:e[24]b-mlx)$/ { print }'
+OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11435}" "${OLLAMA_BIN}" list | awk 'NR == 1 || $1 ~ /^(qwen3[.]6:(35b|27b)-mlx|gemma4:e[24]b-mlx)$/ { print }'

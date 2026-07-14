@@ -5,7 +5,7 @@
   "namespace": "legal.workflow",
   "status": "dev",
   "summary": "Compose shared file skills and legal shared skills into the document onboarding workflow.",
-  "workflowDefinition": "workflows/legal/document-onboarding.workflow.json",
+  "workflowAgent": "workflows/legal/document-onboarding.workflow-agent.md",
   "profile": "legal-dev",
   "inputs": {
     "legalSourceSelection": "object?",

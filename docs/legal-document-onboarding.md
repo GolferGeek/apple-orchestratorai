@@ -1,20 +1,18 @@
 # Legal Document Onboarding
 
-This is the first workflow JSON candidate for Apple Orchestrator AI.
+This is the first Pi-native legal workflow for Apple Orchestrator AI.
 
-The source definition is:
-
-```text
-workflows/legal/document-onboarding.workflow.json
-```
-
-The current golden-path execution plan is:
+The executable definition is the Pi workflow package:
 
 ```text
-workflows/legal/document-onboarding.execution-plan.json
+.pi/agents/legal-document-onboarding-coordinator.md
+.pi/agents/legal-*.md
+.pi/skills/legal-*/SKILL.md
+.pi/prompts/document-onboarding.md
+.pi/extensions/workflow-tools/index.ts
 ```
 
-The intent is to model document onboarding as a workflow definition, not as code. Hermes should execute the workflow by resolving the requested skills, persisting run observability, and returning schema-shaped outputs that the Mac app can display.
+The intent is to model document onboarding as a coordinator agent that uses skills, calls project-local agents, can spawn approved one-run dynamic agents, persists run observability, pauses for HITL, and returns schema-shaped outputs that the Mac app can display. JSON files may exist as fixtures, examples, catalog metadata, dynamic agent specs, or display contracts. Pi does not execute a workflow JSON file as the workflow runtime.
 
 ## Launch Payload
 
@@ -24,16 +22,16 @@ The reference launch payload is:
 test-fixtures/legal/document-onboarding/acme-renewal/launch-payload.json
 ```
 
-The Mac app sends the same logical shape to Hermes when document onboarding starts. Hermes should treat this as the workflow source of truth and resolve all client, matter, and document references through skills or MCPs.
+The Mac app sends the same logical shape to Pi when document onboarding starts. Pi treats this as the launch contract and resolves all client, matter, and document references through skills, extension tools, or approved MCPs.
 
 ## Input Model
 
 Document onboarding needs both document bytes and legal context.
 
-The Apple/Hermes version should support three input paths:
+The Apple/Pi version should support three input paths:
 
-- **Local file paths:** the lawyer or student has a safe local copy of client/matter documents on the Mac, and Hermes receives file paths plus client/matter identifiers.
-- **Apple-store-backed matter documents:** Hermes resolves a client, matter, and document list from the app's Apple local database through an app-owned service or skill.
+- **Local file paths:** the lawyer or student has a safe local copy of client/matter documents on the Mac, and Pi receives file paths plus client/matter identifiers.
+- **Apple-store-backed matter documents:** Pi resolves a client, matter, and document list from the app's Apple local database through an app-owned tool or skill.
 - **Manual upload:** the user supplies files outside the configured source.
 
 The important fields are:
@@ -44,7 +42,7 @@ The important fields are:
 - `baseDirectory`
 - optional `documentSlugs` when the documents are selected from a configured matter-document table
 
-This keeps the old "substrate" idea but makes it more Apple/Hermes friendly. Hermes does not need a hardcoded file plane. It needs skills that can resolve local files and Apple-store matter context safely.
+This keeps the old "substrate" idea but makes it more Apple/Pi friendly. Pi does not need a hardcoded file plane. It needs skills and tools that can resolve local files and Apple-store matter context safely.
 
 ## Skill Split
 
@@ -56,14 +54,12 @@ Workflow skills operate the workflow itself. They should not know legal doctrine
 
 Examples:
 
-- `workflow.load-definition.v0`
-- `workflow.validate-definition.v0`
-- `workflow.run-structured-graph.v0`
 - `workflow.request-human-review.v0`
 - `workflow.persist-run-observability.v0`
 - `workflow.render-output-packet.v0`
+- `workflow.write-artifacts.v0`
 
-These are the skills that let Hermes understand the JSON, run graphs and subgraphs, pause for human review, and write observable run state.
+These are the skills and tools that let the coordinator pause for human review, write observable run state, and render output packets.
 
 ### Shared Skills
 
@@ -129,7 +125,7 @@ This split matters because contract review, privilege detection, party extractio
 
 ## Workflow Shape
 
-The current JSON uses this hierarchy:
+The coordinator should still think in this product hierarchy:
 
 ```text
 workflow
@@ -137,6 +133,8 @@ workflow
     subgraph
       workUnit
 ```
+
+That hierarchy is expressed through the coordinator's skill calls, project-agent calls, optional dynamic-agent calls, and emitted events. It is not a JSON execution engine.
 
 For document onboarding, the graphs are:
 
@@ -158,10 +156,9 @@ This matters because document onboarding is where the system first touches legal
 
 ## Open Design Questions
 
-- Should the workflow JSON include UI hints, or should Hermes return separate display contracts for each run state?
-- Should legal skills be bundled with the app, with Hermes, or installed as a legal skill pack?
+- Should legal skills be bundled with the app, with Pi, or installed as a legal skill pack?
 - Should matter context be read from Apple-local storage, an MCP-backed source, or both?
 - Should document onboarding automatically recommend next workflows, or only list possible next workflows for human selection?
 - Should the final metadata schema be generic across legal workflows, or specific to document onboarding?
 
-My current recommendation: keep the workflow JSON execution-focused, and have Hermes return display-shaped JSON separately for the Mac app. That keeps the workflow portable and avoids turning every workflow into a custom UI contract.
+My current recommendation: keep Pi execution agent-first and skill-first. Let Pi return display-shaped JSON separately for the Mac app when the UI needs it, but do not make JSON the workflow runtime.

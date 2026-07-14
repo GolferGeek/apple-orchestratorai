@@ -8,33 +8,37 @@
   "runtimes": [
     {
       "id": "hermes",
-      "required": true,
+      "required": false,
       "managedBy": "app",
+      "lifecycle": "temporary-reference",
       "expectedInterfaces": [
         "http-api",
         "event-stream",
         "cli"
       ],
       "responsibilities": [
-        "profiles",
-        "skills",
-        "workflow-execution",
-        "provider-route-policy",
-        "run-events"
+        "reference-contracts",
+        "legacy-smoke-tests",
+        "apple-assistant-candidate"
       ]
     },
     {
       "id": "pi",
-      "required": false,
+      "required": true,
       "managedBy": "app",
       "expectedInterfaces": [
         "cli",
+        "rpc-jsonl",
         "sdk"
       ],
       "responsibilities": [
-        "admin-frontend",
-        "coding-harness",
-        "runtime-maintenance"
+        "workflow-execution",
+        "agent-team-orchestration",
+        "skills",
+        "provider-route-policy",
+        "run-events",
+        "human-review-events",
+        "admin-frontend"
       ]
     },
     {

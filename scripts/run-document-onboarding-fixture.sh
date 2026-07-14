@@ -3,26 +3,25 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FIXTURE="${ROOT_DIR}/test-fixtures/legal/document-onboarding/acme-renewal/input.json"
-WORKFLOW="${ROOT_DIR}/workflows/legal/document-onboarding.workflow.json"
-MODEL="${MODEL:-qwen3.6:35b-a3b-nvfp4}"
+WORKFLOW_AGENT="${ROOT_DIR}/workflows/legal/document-onboarding.workflow-agent.md"
+MODEL="${MODEL:-qwen3.6:35b-mlx}"
 
 if [[ ! -f "${FIXTURE}" ]]; then
   echo "Missing fixture: ${FIXTURE}" >&2
   exit 1
 fi
 
-prompt="$(python3 - "${WORKFLOW}" "${FIXTURE}" <<'PY'
+prompt="$(python3 - "${WORKFLOW_AGENT}" "${FIXTURE}" <<'PY'
 import json
 import sys
 
-workflow_path, fixture_path = sys.argv[1:3]
-workflow = json.load(open(workflow_path))
+agent_path, fixture_path = sys.argv[1:3]
 fixture = json.load(open(fixture_path))
 workflow_summary = {
-    "id": workflow["id"],
-    "name": workflow["name"],
-    "stages": workflow["runtime"]["observability"]["presentationStages"],
-    "defaultLocalModel": workflow["modelPolicy"]["defaultLocalModel"],
+    "source": agent_path,
+    "name": "Document Onboarding",
+    "stages": ["metadata", "classify", "specialists", "synthesis", "hitl_review", "report"],
+    "defaultLocalModel": "qwen3.6:35b-mlx",
 }
 fixture_summary = {
     "workflowId": fixture["workflowId"],

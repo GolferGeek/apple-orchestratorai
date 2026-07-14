@@ -18,7 +18,7 @@ struct WorkflowCatalogView: View {
                 }
 
                 if appState.workflows.isEmpty {
-                    EmptyPanel(title: "No workflows found", detail: "Add workflow JSON under workflows/ and refresh.")
+                    EmptyPanel(title: "No workflows found", detail: "Add a workflow-agent Markdown file under workflows/ and refresh.")
                 } else {
                     ForEach(appState.workflows) { workflow in
                         WorkflowCatalogCard(workflow: workflow)
@@ -50,7 +50,7 @@ private struct WorkflowCatalogCard: View {
             if workflow.id == "document-onboarding" {
                 HStack {
                     Button {
-                        appState.startDocumentOnboardingRun()
+                        appState.showDocumentOnboardingLaunch()
                     } label: {
                         Label("Run Document Onboarding", systemImage: "play.circle.fill")
                     }
@@ -82,12 +82,8 @@ private struct WorkflowCatalogCard: View {
 
             GenericListBlock(title: "Launch Modes", items: workflow.launchModes)
             GenericTimelineBlock(title: "Stages", stages: workflow.stages.map {
-                WorkflowStageRecord(id: $0, name: $0.replacingOccurrences(of: "_", with: " ").capitalized, status: "defined", summary: "Defined in workflow JSON.")
+                WorkflowStageRecord(id: $0, name: $0, status: "defined", summary: "Defined by the workflow agent.")
             })
-
-            if let plan = appState.workflowExecutionPlans[workflow.id] {
-                WorkflowExecutionPlanBlock(plan: plan)
-            }
 
             if appState.workflowExplanation?.workflowId == workflow.id {
                 WorkflowExplanationBlock(explanation: appState.workflowExplanation!)
@@ -99,86 +95,6 @@ private struct WorkflowCatalogCard: View {
         }
         .padding(14)
         .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-}
-
-private struct WorkflowExecutionPlanBlock: View {
-    let plan: WorkflowExecutionPlan
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("Execution Plan")
-                    .font(.subheadline.weight(.semibold))
-                Spacer()
-                StatusBadge(text: plan.mode)
-            }
-
-            ForEach(plan.stages) { stage in
-                WorkflowExecutionStageBlock(stage: stage)
-            }
-
-            if !plan.humanCheckpoints.isEmpty {
-                GenericListBlock(
-                    title: "Human Checkpoints",
-                    items: plan.humanCheckpoints.map {
-                        "\($0.id): \($0.reviewMode), decisions: \($0.allowedDecisions.joined(separator: ", "))"
-                    }
-                )
-            }
-        }
-        .padding(12)
-        .background(.teal.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-}
-
-private struct WorkflowExecutionStageBlock: View {
-    let stage: WorkflowExecutionStage
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(stage.name)
-                    .font(.callout.weight(.semibold))
-                Spacer()
-                StatusBadge(text: stage.execution)
-            }
-
-            Text("\(stage.graphId) / \(stage.subgraphId ?? "root")")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            ForEach(stage.workUnits) { workUnit in
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text(workUnit.name)
-                            .font(.callout)
-                        Spacer()
-                        if workUnit.optional == true {
-                            StatusBadge(text: "optional")
-                        }
-                    }
-
-                    Text(workUnit.skillId)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .textSelection(.enabled)
-
-                    if !workUnit.outputs.isEmpty {
-                        Text("Outputs: \(workUnit.outputs.joined(separator: ", "))")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(8)
-                .background(Color(nsColor: .textBackgroundColor).opacity(0.6))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-        }
-        .padding(10)
-        .background(Color(nsColor: .controlBackgroundColor).opacity(0.7))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }

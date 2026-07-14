@@ -31,4 +31,14 @@ echo "Probing Pi RPC startup"
 (
   printf '{"id":"probe-1","type":"get_state"}\n'
   sleep 1
-) | "${PI_NODE_BIN}" "${PI_BIN}" --mode rpc --provider ollama --model qwen3.6:latest --api-key ollama --no-session --no-tools --no-extensions --no-skills --no-prompt-templates --no-context-files | sed -n '1,8p'
+) | "${PI_NODE_BIN}" "${PI_BIN}" --mode rpc --provider ollama --model qwen3.6:35b-mlx --api-key ollama --no-session --no-tools --no-extensions --no-skills --no-prompt-templates --no-context-files | sed -n '1,8p'
+
+echo
+echo "Probing Pi RPC event wrapper"
+python3 "${ROOT_DIR}/scripts/smoke-pi-rpc-events.py" \
+  --run-id "run-pi-probe-$(date -u +%Y%m%dT%H%M%SZ)" \
+  --workflow-id "runtime.pi-probe" \
+  --stage-id "runtime" \
+  --work-unit-id "pi.rpc-probe" \
+  --skill-id "runtime.pi-rpc-probe" \
+  --timeout-seconds 20

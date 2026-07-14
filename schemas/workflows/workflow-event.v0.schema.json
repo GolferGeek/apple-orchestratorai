@@ -11,7 +11,40 @@
     },
     "type": {
       "type": "string",
-      "description": "Normalized workflow event type such as workflow.started, stage.started, work_unit.completed, human_review.requested, or workflow.completed."
+      "description": "Normalized workflow event type such as workflow.started, stage.started, work_unit.completed, human_review.requested, or workflow.completed.",
+      "enum": [
+        "workflow.started",
+        "workflow.paused",
+        "workflow.completed",
+        "workflow.failed",
+        "graph.started",
+        "graph.completed",
+        "graph.failed",
+        "subgraph.started",
+        "subgraph.completed",
+        "subgraph.failed",
+        "stage.started",
+        "stage.completed",
+        "stage.failed",
+        "work_unit.started",
+        "work_unit.completed",
+        "work_unit.failed",
+        "team.started",
+        "team.completed",
+        "team.failed",
+        "role.started",
+        "role.completed",
+        "role.failed",
+        "tool.started",
+        "tool.completed",
+        "tool.failed",
+        "human_review.requested",
+        "human_review.completed",
+        "human_review.failed",
+        "output.written",
+        "output.validated",
+        "output.failed"
+      ]
     },
     "runId": {
       "type": "string"
@@ -32,6 +65,18 @@
       "type": "string"
     },
     "skillId": {
+      "type": "string"
+    },
+    "teamId": {
+      "type": "string"
+    },
+    "roleId": {
+      "type": "string"
+    },
+    "agentId": {
+      "type": "string"
+    },
+    "toolCallId": {
       "type": "string"
     },
     "reviewId": {
@@ -91,6 +136,12 @@
       "type": "object"
     },
     "rawHermesRunId": {
+      "type": "string"
+    },
+    "rawPiSessionId": {
+      "type": "string"
+    },
+    "rawPiCommandId": {
       "type": "string"
     }
   },

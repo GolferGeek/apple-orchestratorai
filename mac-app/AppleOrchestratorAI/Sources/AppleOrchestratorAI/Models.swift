@@ -1,21 +1,51 @@
 import Foundation
 
 enum AppSection: String, CaseIterable, Identifiable {
-    case voice
+    case runs
+    case workflows
+    case builderAI
+    case legalSource
+    case runtime
+    case pi
+    case hermes
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .voice:
-            "Voice"
+        case .runs:
+            "Runs"
+        case .workflows:
+            "Workflows"
+        case .builderAI:
+            "Builder AI"
+        case .legalSource:
+            "Sources"
+        case .runtime:
+            "Runtime"
+        case .pi:
+            "Pi"
+        case .hermes:
+            "Hermes"
         }
     }
 
     var symbolName: String {
         switch self {
-        case .voice:
-            "mic"
+        case .runs:
+            "waveform.path.ecg.rectangle"
+        case .workflows:
+            "person.crop.circle.badge.gearshape"
+        case .builderAI:
+            "sparkles"
+        case .legalSource:
+            "folder.badge.gearshape"
+        case .runtime:
+            "cpu"
+        case .pi:
+            "terminal"
+        case .hermes:
+            "bolt.horizontal"
         }
     }
 }
@@ -81,45 +111,113 @@ struct WorkflowCatalogItem: Identifiable, Decodable, Equatable {
     let humanInteraction: String
     let defaultLocalModel: String
     let outputContracts: [WorkflowLaunchOutputContract]
+    let brief: WorkflowProductBrief
 }
 
-struct WorkflowExecutionPlan: Identifiable, Decodable, Equatable {
-    var id: String { workflowId }
+struct WorkflowProductBrief: Decodable, Equatable {
+    let overview: String
+    let benefits: String
+    let userGuide: String
+    let adminNotes: String
+    let testCases: [WorkflowProductTestCase]
 
-    let schemaVersion: String
-    let kind: String
-    let workflowId: String
-    let profileId: String
-    let mode: String
-    let sourceWorkflow: String?
-    let stages: [WorkflowExecutionStage]
-    let humanCheckpoints: [WorkflowHumanCheckpoint]
+    static let empty = WorkflowProductBrief(
+        overview: "No workflow overview has been written yet.",
+        benefits: "No workflow benefits have been written yet.",
+        userGuide: "Use the workflow's run screen to select sources, review decisions, and final outputs.",
+        adminNotes: "Maintain this workflow through the Workflow Agent Builder.",
+        testCases: []
+    )
 }
 
-struct WorkflowExecutionStage: Identifiable, Decodable, Equatable {
+struct WorkflowProductTestCase: Identifiable, Decodable, Equatable {
     let id: String
     let name: String
-    let graphId: String
-    let subgraphId: String?
-    let execution: String
-    let workUnits: [WorkflowExecutionWorkUnit]
+    let goal: String
+    let fixture: String
+    let expected: String
+    let review: String
+    let runnable: Bool
 }
 
-struct WorkflowExecutionWorkUnit: Identifiable, Decodable, Equatable {
+struct WorkflowAgentNode: Identifiable, Codable, Equatable {
+    enum Kind: String, Codable, CaseIterable, Identifiable {
+        case workflow
+        case phase
+        case subphase
+        case workUnit = "work_unit"
+        case workTeam = "work_team"
+        case role
+        case skill
+        case tool
+        case output
+
+        var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .workflow: "Workflow Agent"
+            case .phase: "Phase"
+            case .subphase: "Subphase"
+            case .workUnit: "Work Unit"
+            case .workTeam: "Work Team"
+            case .role: "Role"
+            case .skill: "Skill"
+            case .tool: "Tool"
+            case .output: "Output"
+            }
+        }
+
+        var symbolName: String {
+            switch self {
+            case .workflow: "person.crop.circle.badge.gearshape"
+            case .phase: "square.stack.3d.up"
+            case .subphase: "point.3.connected.trianglepath.dotted"
+            case .workUnit: "checklist"
+            case .workTeam: "person.3"
+            case .role: "person.crop.circle"
+            case .skill: "wand.and.stars"
+            case .tool: "wrench.and.screwdriver"
+            case .output: "doc.richtext"
+            }
+        }
+    }
+
+    var id: String
+    var kind: Kind
+    var name: String
+    var detail: String
+    var model: String?
+    var required: Bool
+    var events: [String]
+    var children: [WorkflowAgentNode]
+}
+
+struct OpenRouterModel: Identifiable, Decodable, Equatable {
     let id: String
     let name: String
-    let skillId: String
-    let inputs: [String]
-    let outputs: [String]
-    let optional: Bool?
-    let emits: [String]?
+    let contextLength: Int?
+    let pricing: Pricing?
+    let architecture: Architecture?
+
+    struct Pricing: Decodable, Equatable {
+        let prompt: String?
+        let completion: String?
+    }
+
+    struct Architecture: Decodable, Equatable {
+        let inputModalities: [String]?
+        let outputModalities: [String]?
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, pricing, architecture
+        case contextLength = "context_length"
+    }
 }
 
-struct WorkflowHumanCheckpoint: Identifiable, Decodable, Equatable {
-    let id: String
-    let stageId: String
-    let reviewMode: String
-    let allowedDecisions: [String]
+struct OpenRouterModelResponse: Decodable {
+    let data: [OpenRouterModel]
 }
 
 struct PlannedRunProgress {
@@ -174,6 +272,7 @@ struct WorkflowRunRecord: Identifiable, Codable, Equatable {
     var humanReview: HumanReviewRecord?
     var outputs: [OutputEnvelope]
     var events: [WorkflowRunEvent] = []
+    var entries: [WorkflowRunEntry] = []
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -189,6 +288,55 @@ struct WorkflowRunRecord: Identifiable, Codable, Equatable {
         case humanReview
         case outputs
         case events
+    }
+}
+
+struct WorkflowRunEntry: Identifiable, Codable, Equatable {
+    var id: String {
+        "\(timestamp)-\(entryType)-\(roleId ?? teamId ?? workUnitId ?? runId)"
+    }
+
+    let timestamp: String
+    let runId: String
+    let entryType: String
+    let data: [String: WorkflowEventValue]
+
+    var workflowId: String? { data.stringValue("workflowId") }
+    var workUnitId: String? { data.stringValue("workUnitId") }
+    var teamId: String? { data.stringValue("teamId") }
+    var roleId: String? { data.stringValue("roleId") }
+    var agentId: String? { data.stringValue("agentId") }
+    var skillId: String? { data.stringValue("skillId") }
+    var modelName: String? { data.stringValue("model") ?? data.objectValue("details")?.stringValue("model") }
+
+    var previewText: String {
+        if let output = data.stringValue("output") {
+            return output.strippedCodeFence.truncated(to: 700)
+        }
+
+        if let summary = data.stringValue("summary") {
+            return summary.truncated(to: 700)
+        }
+
+        if let status = data.stringValue("status") {
+            return "Status: \(status)"
+        }
+
+        if let roleOutputs = data.arrayValue("roleOutputs"), !roleOutputs.isEmpty {
+            let roles = roleOutputs.compactMap { value -> String? in
+                guard case .object(let object) = value else { return nil }
+                let role = object.stringValue("roleId") ?? "role"
+                let failed = object.boolValue("failed") == true ? " failed" : ""
+                return "\(role)\(failed)"
+            }
+            return roles.isEmpty ? "\(roleOutputs.count) role outputs" : "Team output: \(roles.joined(separator: ", "))"
+        }
+
+        return data
+            .sorted { $0.key < $1.key }
+            .map { "\($0.key): \($0.value.previewValue)" }
+            .joined(separator: ", ")
+            .truncated(to: 700)
     }
 }
 
@@ -229,7 +377,7 @@ struct OutputEnvelope: Identifiable, Codable, Equatable {
 
 struct WorkflowRunEvent: Identifiable, Codable, Equatable, Sendable {
     var id: String {
-        "\(timestamp)-\(type)-\(workUnitId ?? stageId ?? reviewId ?? rawHermesRunId ?? runId)"
+        "\(timestamp)-\(type)-\(roleId ?? teamId ?? workUnitId ?? stageId ?? reviewId ?? rawHermesRunId ?? runId)"
     }
 
     let timestamp: String
@@ -240,6 +388,9 @@ struct WorkflowRunEvent: Identifiable, Codable, Equatable, Sendable {
     let graphId: String?
     let subgraphId: String?
     let workUnitId: String?
+    let teamId: String?
+    let roleId: String?
+    let agentId: String?
     let skillId: String?
     let reviewId: String?
     let status: String?
@@ -251,6 +402,40 @@ struct WorkflowRunEvent: Identifiable, Codable, Equatable, Sendable {
     let raw: [String: WorkflowEventValue]?
     let rawHermesRunId: String?
 
+    var modelName: String? {
+        raw?.objectValue("details")?.stringValue("model")
+            ?? raw?.stringValue("model")
+            ?? metrics?.stringValue("model")
+            ?? raw?.objectValue("raw")?.objectValue("message")?.stringValue("model")
+            ?? raw?.objectValue("raw")?.objectValue("assistantMessageEvent")?.objectValue("partial")?.stringValue("model")
+    }
+
+    var piMessageText: String? {
+        if let message = message ?? summary, !message.isEmpty { return message }
+        let rawEvent = raw?.objectValue("raw")
+        let message = rawEvent?.objectValue("message")
+            ?? rawEvent?.objectValue("assistantMessageEvent")?.objectValue("partial")
+        guard let content = message?.arrayValue("content") else { return nil }
+        let text = content.compactMap { value -> String? in
+            guard case .object(let item) = value else { return nil }
+            return item.stringValue("text")
+        }.joined()
+        return text.isEmpty ? nil : text
+    }
+
+    var piToolName: String? {
+        raw?.objectValue("raw")?.stringValue("toolName")
+    }
+
+    var piMessageRole: String? {
+        raw?.objectValue("raw")?.objectValue("message")?.stringValue("role")
+            ?? raw?.objectValue("raw")?.objectValue("assistantMessageEvent")?.objectValue("partial")?.stringValue("role")
+    }
+
+    var isPiToolEvent: Bool {
+        type.hasPrefix("tool.") || piToolName != nil
+    }
+
     init(
         timestamp: String,
         type: String,
@@ -260,6 +445,9 @@ struct WorkflowRunEvent: Identifiable, Codable, Equatable, Sendable {
         graphId: String? = nil,
         subgraphId: String? = nil,
         workUnitId: String? = nil,
+        teamId: String? = nil,
+        roleId: String? = nil,
+        agentId: String? = nil,
         skillId: String? = nil,
         reviewId: String? = nil,
         status: String? = nil,
@@ -279,6 +467,9 @@ struct WorkflowRunEvent: Identifiable, Codable, Equatable, Sendable {
         self.graphId = graphId
         self.subgraphId = subgraphId
         self.workUnitId = workUnitId
+        self.teamId = teamId
+        self.roleId = roleId
+        self.agentId = agentId
         self.skillId = skillId
         self.reviewId = reviewId
         self.status = status
@@ -364,6 +555,64 @@ enum WorkflowEventValue: Codable, Equatable, Sendable {
             "null"
         }
     }
+
+    var previewValue: String {
+        switch self {
+        case .string(let value):
+            return value.strippedCodeFence.truncated(to: 180)
+        case .number, .bool, .null:
+            return displayValue
+        case .object(let value):
+            let keys = value.keys.sorted().prefix(5).joined(separator: ", ")
+            return keys.isEmpty ? "object" : "object(\(keys))"
+        case .array(let value):
+            return "\(value.count) items"
+        }
+    }
+}
+
+extension Dictionary where Key == String, Value == WorkflowEventValue {
+    func stringValue(_ key: String) -> String? {
+        guard case .string(let value) = self[key] else { return nil }
+        return value
+    }
+
+    func boolValue(_ key: String) -> Bool? {
+        guard case .bool(let value) = self[key] else { return nil }
+        return value
+    }
+
+    func arrayValue(_ key: String) -> [WorkflowEventValue]? {
+        guard case .array(let value) = self[key] else { return nil }
+        return value
+    }
+
+    func objectValue(_ key: String) -> [String: WorkflowEventValue]? {
+        guard case .object(let value) = self[key] else { return nil }
+        return value
+    }
+}
+
+extension String {
+    var strippedCodeFence: String {
+        var value = trimmingCharacters(in: .whitespacesAndNewlines)
+        if value.hasPrefix("```") {
+            value = value
+                .split(separator: "\n", omittingEmptySubsequences: false)
+                .dropFirst()
+                .joined(separator: "\n")
+        }
+        if value.hasSuffix("```") {
+            value = String(value.dropLast(3))
+        }
+        return value.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func truncated(to maxLength: Int) -> String {
+        guard count > maxLength else { return self }
+        let end = index(startIndex, offsetBy: maxLength)
+        return String(self[..<end]) + "..."
+    }
 }
 
 enum LegalSourceKind: String, Codable, Equatable {
@@ -384,6 +633,14 @@ struct LegalSourceSelection: Equatable {
     var client: LegalSourceOption?
     var matter: LegalSourceOption?
     var documents: [LegalSourceOption] = []
+}
+
+struct LocalWorkflowFile: Identifiable, Equatable {
+    let url: URL
+
+    var id: String { url.standardizedFileURL.path }
+    var name: String { url.lastPathComponent }
+    var location: String { url.deletingLastPathComponent().path }
 }
 
 struct WorkflowExplanation: Identifiable, Codable, Equatable {

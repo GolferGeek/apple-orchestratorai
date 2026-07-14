@@ -37,7 +37,7 @@ The exact model names should remain configurable, but the classes matter:
 
 ## Apple-Optimized Direction
 
-Ollama's Apple Silicon optimized model paths should be preferred where available because this product is Mac-first. The actual tag names matter: the installed Qwen models use explicit `nvfp4` tags, and the installed Gemma models use explicit `-mlx` tags.
+Ollama's Apple Silicon optimized model paths should be preferred where available because this product is Mac-first. The actual tag names matter: use explicit `-mlx` tags for this project.
 
 The development baseline is:
 
@@ -69,16 +69,16 @@ If the app-scope install reports that `/Applications` is not writable, use the o
 Recommended default Apple-optimized model set:
 
 ```text
-qwen3.6:35b-a3b-nvfp4
-qwen3.6:35b-a3b-coding-nvfp4
+qwen3.6:35b-mlx
+qwen3.6:27b-mlx
 gemma4:e2b-mlx
 gemma4:e4b-mlx
 ```
 
 Use cases:
 
-- `qwen3.6:35b-a3b-nvfp4`: strong local legal/workflow reasoning default.
-- `qwen3.6:35b-a3b-coding-nvfp4`: coding, repository reasoning, workflow-building, and tool-heavy tasks.
+- `qwen3.6:35b-mlx`: deep local legal/workflow reasoning for coordinators, arbitration, synthesis, and difficult planning. It should not be the default for every work unit.
+- `qwen3.6:27b-mlx`: lighter Qwen local fallback.
 - `gemma4:e4b-mlx`: fast local assistant, smaller workflow steps, inexpensive iteration.
 - `gemma4:e2b-mlx`: very fast smoke tests, lightweight routing, simple classification.
 
@@ -91,8 +91,8 @@ deepseek-r1:70b
 Optional full tier:
 
 ```text
-qwen3.6:35b-a3b-nvfp4
-qwen3.6:35b-a3b-coding-nvfp4
+qwen3.6:35b-mlx
+qwen3.6:27b-mlx
 gemma4:e2b-mlx
 gemma4:e4b-mlx
 deepseek-r1:70b

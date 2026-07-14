@@ -45,6 +45,17 @@
                 "id": { "type": "string" },
                 "name": { "type": "string" },
                 "skillId": { "type": "string" },
+                "workTeamId": { "type": "string" },
+                "primaryAgentId": { "type": "string" },
+                "model": { "type": "string" },
+                "modelTier": {
+                  "enum": ["fast", "standard", "reasoning", "deep"]
+                },
+                "modelReason": { "type": "string" },
+                "roleIds": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
                 "inputs": {
                   "type": "array",
                   "items": { "type": "string" }

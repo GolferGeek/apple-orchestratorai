@@ -4,11 +4,10 @@
   "name": "Run Structured Workflow Graph",
   "namespace": "workflow",
   "status": "dev",
-  "summary": "Execute a workflow execution plan by invoking graph, subgraph, and work-unit skills in dependency order.",
+  "summary": "Execute a workflow agent by invoking its phases, subphases, work units, teams, roles, skills, and tools in dependency order.",
   "inputs": {
     "launchPayload": "schemas/workflows/workflow-launch.v0.schema.json",
-    "workflowDefinition": "workflows/*/*.workflow.json",
-    "executionPlan": "schemas/workflows/workflow-execution-plan.v0.schema.json"
+    "workflowAgent": "workflows/*/*.workflow-agent.md"
   },
   "outputs": {
     "runRecord": "schemas/workflows/workflow-run.v0.schema.json",
