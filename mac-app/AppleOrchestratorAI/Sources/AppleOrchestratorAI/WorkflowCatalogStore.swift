@@ -2,117 +2,129 @@ import Foundation
 
 struct WorkflowCatalogStore {
     func load(repoRoot: URL?) -> [WorkflowCatalogItem] {
-        guard let repoRoot else { return [] }
-        let workflowRoot = repoRoot.appending(path: "workflows", directoryHint: .isDirectory)
-        let fileManager = FileManager.default
-        guard let enumerator = fileManager.enumerator(at: workflowRoot, includingPropertiesForKeys: nil) else {
-            return []
-        }
-
-        return enumerator
-            .compactMap { $0 as? URL }
-            .filter { $0.pathExtension == "json" }
-            .compactMap(loadWorkflow)
-            .sorted { $0.name < $1.name }
+        let store = WorkflowAgentFileStore()
+        return store.agentURLs(repoRoot: repoRoot)
+            .compactMap { loadWorkflowAgent(from: $0, store: store) }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
-    func loadExecutionPlans(repoRoot: URL?) -> [String: WorkflowExecutionPlan] {
-        guard let repoRoot else { return [:] }
-        let workflowRoot = repoRoot.appending(path: "workflows", directoryHint: .isDirectory)
-        let fileManager = FileManager.default
-        guard let enumerator = fileManager.enumerator(at: workflowRoot, includingPropertiesForKeys: nil) else {
-            return [:]
-        }
-
-        let plans = enumerator
-            .compactMap { $0 as? URL }
-            .filter { $0.lastPathComponent.hasSuffix(".execution-plan.json") }
-            .compactMap(loadExecutionPlan)
-
-        return Dictionary(uniqueKeysWithValues: plans.map { ($0.workflowId, $0) })
+    func loadAgents(repoRoot: URL?) -> [String: WorkflowAgentNode] {
+        let store = WorkflowAgentFileStore()
+        return Dictionary(uniqueKeysWithValues: store.agentURLs(repoRoot: repoRoot).compactMap { url in
+            guard let root = store.load(url: url) else { return nil }
+            return (root.id, root)
+        })
     }
 
-    private func loadWorkflow(from url: URL) -> WorkflowCatalogItem? {
-        guard
-            let data = try? Data(contentsOf: url),
-            let workflow = try? JSONDecoder().decode(WorkflowDefinition.self, from: data)
-        else {
-            return nil
-        }
-
+    private func loadWorkflowAgent(from url: URL, store: WorkflowAgentFileStore) -> WorkflowCatalogItem? {
+        guard let root = store.load(url: url) else { return nil }
+        let metadata = frontMatter(in: (try? String(contentsOf: url, encoding: .utf8)) ?? "")
+        let outputs = flatten(root)
+            .filter { $0.kind == .output && $0.name.hasPrefix("outputs.") }
+            .map {
+            WorkflowLaunchOutputContract(
+                id: String($0.name.dropFirst("outputs.".count)),
+                type: $0.name.localizedCaseInsensitiveContains("report") ? "export_document" : "structured",
+                required: $0.required
+            )
+            }
         return WorkflowCatalogItem(
-            id: workflow.id,
-            name: workflow.name,
-            status: workflow.status,
-            domain: workflow.domain,
-            description: workflow.description,
-            stages: workflow.runtime.observability.presentationStages,
-            launchModes: workflow.frontend.launchModes.map(\.name),
-            humanInteraction: workflow.operatingMode.humanInteraction,
-            defaultLocalModel: workflow.modelPolicy.defaultLocalModel,
-            outputContracts: workflow.outputs.contracts
+            id: root.id,
+            name: root.name,
+            status: metadata["status"] ?? "dev",
+            domain: metadata["domain"] ?? "general",
+            description: root.detail,
+            stages: root.children.filter { $0.kind == .phase }.map(\.name),
+            launchModes: ["Choose Client Matter Documents", "Choose Local Files"],
+            humanInteraction: metadata["human_interaction"] ?? "Defined by the workflow agent",
+            defaultLocalModel: root.model ?? "inherit",
+            outputContracts: outputs,
+            brief: WorkflowProductBriefStore().load(url: url)
         )
     }
 
-    private func loadExecutionPlan(from url: URL) -> WorkflowExecutionPlan? {
-        guard let data = try? Data(contentsOf: url) else {
-            return nil
-        }
+    private func frontMatter(in text: String) -> [String: String] {
+        let lines = text.split(separator: "\n").map(String.init)
+        guard lines.first == "---", let end = lines.dropFirst().firstIndex(of: "---") else { return [:] }
+        return Dictionary(uniqueKeysWithValues: lines[1..<end].compactMap { line in
+            let pair = line.split(separator: ":", maxSplits: 1).map(String.init)
+            guard pair.count == 2 else { return nil }
+            return (pair[0].trimmingCharacters(in: .whitespaces), pair[1].trimmingCharacters(in: .whitespaces))
+        })
+    }
 
-        return try? JSONDecoder().decode(WorkflowExecutionPlan.self, from: data)
+    private func flatten(_ node: WorkflowAgentNode) -> [WorkflowAgentNode] {
+        [node] + node.children.flatMap(flatten)
     }
 }
 
-private struct WorkflowDefinition: Decodable {
-    let id: String
-    let name: String
-    let status: String
-    let domain: String
-    let description: String
-    let operatingMode: OperatingMode
-    let frontend: Frontend
-    let runtime: Runtime
-    let modelPolicy: ModelPolicy
-    let outputs: Outputs
+struct WorkflowProductBriefStore {
+    private let sectionHeading = "## Workflow Product"
 
-    struct OperatingMode: Decodable {
-        let humanInteraction: String
-    }
-
-    struct Frontend: Decodable {
-        let launchModes: [LaunchMode]
-    }
-
-    struct LaunchMode: Decodable {
-        let name: String
-    }
-
-    struct Runtime: Decodable {
-        let observability: Observability
-    }
-
-    struct Observability: Decodable {
-        let presentationStages: [String]
-    }
-
-    struct ModelPolicy: Decodable {
-        let defaultLocalModel: String
-    }
-
-    struct Outputs: Decodable {
-        let primary: [OutputContract]
-        let structured: [OutputContract]
-        let review: [OutputContract]
-
-        var contracts: [WorkflowLaunchOutputContract] {
-            (primary + structured + review).map {
-                WorkflowLaunchOutputContract(id: $0.id, type: $0.type, required: true)
-            }
+    func load(url: URL) -> WorkflowProductBrief {
+        guard let text = try? String(contentsOf: url, encoding: .utf8),
+              let section = section(in: text) else {
+            return .empty
         }
+
+        let overview = content(under: "### Overview", in: section) ?? WorkflowProductBrief.empty.overview
+        let benefits = content(under: "### Benefits", in: section) ?? WorkflowProductBrief.empty.benefits
+        let userGuide = content(under: "### User Guide", in: section) ?? WorkflowProductBrief.empty.userGuide
+        let adminNotes = content(under: "### Admin", in: section) ?? WorkflowProductBrief.empty.adminNotes
+        return WorkflowProductBrief(
+            overview: overview,
+            benefits: benefits,
+            userGuide: userGuide,
+            adminNotes: adminNotes,
+            testCases: testCases(in: section)
+        )
     }
 
-    struct OutputContract: Decodable {
-        let id: String
-        let type: String
+    func preservedSection(in text: String) -> String? {
+        section(in: text)
+    }
+
+    private func section(in text: String) -> String? {
+        guard let start = text.range(of: sectionHeading) else { return nil }
+        let remainder = text[start.lowerBound...]
+        let searchStart = remainder.index(remainder.startIndex, offsetBy: sectionHeading.count)
+        let end = remainder.range(of: "\n## ", options: [], range: searchStart..<remainder.endIndex)
+        return String(end.map { remainder[..<$0.lowerBound] } ?? remainder)
+    }
+
+    private func content(under heading: String, in section: String) -> String? {
+        guard let start = section.range(of: heading) else { return nil }
+        let remainder = section[start.upperBound...]
+        let end = remainder.range(of: "\n### ")
+        let value = String(end.map { remainder[..<$0.lowerBound] } ?? remainder)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
+    }
+
+    private func testCases(in section: String) -> [WorkflowProductTestCase] {
+        guard let testCaseContent = content(under: "### Test Cases", in: section) else { return [] }
+        let parts = testCaseContent.components(separatedBy: "\n#### ").enumerated().compactMap { index, value -> String? in
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if index == 0 { return trimmed.hasPrefix("#### ") ? String(trimmed.dropFirst(5)) : nil }
+            return trimmed
+        }
+        return parts.compactMap { entry in
+            let lines = entry.split(separator: "\n").map(String.init)
+            guard let name = lines.first?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
+            func value(_ key: String) -> String {
+                lines.first { $0.hasPrefix("- **\(key):**") }
+                    .map { $0.replacingOccurrences(of: "- **\(key):**", with: "").trimmingCharacters(in: .whitespacesAndNewlines) } ?? "Not specified."
+            }
+            let fixture = value("Fixture").replacingOccurrences(of: "`", with: "")
+            return WorkflowProductTestCase(
+                id: name.lowercased().replacingOccurrences(of: " ", with: "-"),
+                name: name,
+                goal: value("Goal"),
+                fixture: fixture,
+                expected: value("Expected"),
+                review: value("Review"),
+                runnable: value("Runnable").lowercased() == "yes"
+            )
+        }
     }
 }

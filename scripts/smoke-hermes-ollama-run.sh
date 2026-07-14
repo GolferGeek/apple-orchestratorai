@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${ROOT_DIR}/.runtime/hermes-env.sh"
-MODEL="${1:-qwen3.6:35b-a3b-nvfp4}"
+MODEL="${1:-qwen3.6:35b-mlx}"
 PROMPT="${SMOKE_PROMPT:-Reply with exactly: OK}"
 EXPECT_JSON="${SMOKE_EXPECT_JSON:-0}"
 POLL_COUNT="${SMOKE_POLL_COUNT:-90}"

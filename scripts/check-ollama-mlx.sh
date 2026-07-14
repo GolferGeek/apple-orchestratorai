@@ -44,4 +44,4 @@ PY
 
 echo
 echo "Installed Apple-optimized model tags:"
-OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11435}" "${OLLAMA_BIN}" list | awk 'NR == 1 || $1 ~ /^(qwen3[.]6:35b-a3b(-coding)?-nvfp4|gemma4:e[24]b-mlx)$/ { print }'
+OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11435}" "${OLLAMA_BIN}" list | awk 'NR == 1 || $1 ~ /^(qwen3[.]6:(35b|27b)-mlx|gemma4:e[24]b-mlx)$/ { print }'

@@ -6,7 +6,9 @@ Document onboarding should be the first workflow converted from OrchestratorAI L
 
 It is the best first slice because it tests:
 
-- workflow JSON structure
+- Pi workflow-agent structure
+- project-agent delegation
+- dynamic agent promotion
 - local file resource
 - document ingestion
 - run state
@@ -17,41 +19,44 @@ It is the best first slice because it tests:
 
 It is simpler than contract review while still exercising the architecture.
 
-## First Workflow JSON Goal
+## First Pi Workflow Goal
 
-Create one workflow JSON file:
+Create one Pi-native workflow package:
 
 ```text
-workflow-packs/legal/workflows/document-onboarding.workflow.json
+.pi/agents/legal-document-onboarding-coordinator.md
+.pi/skills/legal-*/SKILL.md
+.pi/prompts/document-onboarding.md
+.pi/extensions/workflow-tools/index.ts
 ```
 
 It should include:
 
-- identity
-- lifecycle status
-- source references to OrchestratorAI Local
-- required skills
-- required MCP resources
-- graph nodes
-- graph edges
+- one coordinator agent
+- source, intake, metadata, routing, specialist, synthesis, HITL, report, and validation agents
+- required legal and shared skills
+- workflow extension tools for events, source resolution, HITL, artifacts, and structured output
+- project-agent delegation for work teams
+- dynamic agent spawning for approved one-run specialist roles
 - human checkpoint
 - expected outputs
-- render hints
+
+JSON may exist as catalog metadata or fixture input, but it is not the thing Pi executes.
 
 ## First Runtime Goal
 
 The app should be able to:
 
-1. discover the workflow JSON
+1. discover the Pi workflow prompt/agent
 2. show it in the workflow list with a user-facing explanation
-3. start a run through Hermes or a Hermes mock
+3. start a run through Pi with the coordinator agent
 4. receive progress events
 5. show a human review task
 6. accept an approval/reject action
 7. display a Markdown output
 8. persist run state locally
 
-The first output can be Markdown for simplicity, but the architecture should allow Hermes skills to update outputs or generate files/artifacts directly.
+The first output can be Markdown for simplicity, but the architecture should allow Pi skills and extension tools to update outputs or generate files/artifacts directly.
 
 The first slice should also prove workflow explanation:
 
@@ -79,4 +84,4 @@ docs/efforts/archive/document-onboarding/
 
 ## Conversion Rule
 
-Do not convert all 17 workflows until document onboarding proves the JSON shape.
+Do not convert all 17 workflows until document onboarding proves the Pi agent, skill, project-agent, dynamic-agent, event, HITL, and output pattern.

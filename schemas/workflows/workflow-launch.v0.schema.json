@@ -43,6 +43,16 @@
         "defaultRoute": { "type": "string" },
         "sovereignty": { "type": "string" },
         "defaultLocalModel": { "type": "string" },
+        "modelTiers": {
+          "type": "object",
+          "properties": {
+            "fast": { "type": "string" },
+            "standard": { "type": "string" },
+            "reasoning": { "type": "string" },
+            "deep": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
         "allowedRoutes": {
           "type": "array",
           "items": { "type": "string" }

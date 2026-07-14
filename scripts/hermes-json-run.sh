@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${ROOT_DIR}/.runtime/hermes-env.sh"
-MODEL="${MODEL:-qwen3.6:35b-a3b-nvfp4}"
+MODEL="${MODEL:-qwen3.6:35b-mlx}"
 PROMPT="${HERMES_JSON_PROMPT:?Set HERMES_JSON_PROMPT}"
 OUTPUT_FILE="${HERMES_JSON_OUTPUT_FILE:?Set HERMES_JSON_OUTPUT_FILE}"
 POLL_COUNT="${HERMES_JSON_POLL_COUNT:-90}"

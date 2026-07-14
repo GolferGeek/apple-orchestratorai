@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import json
+import base64
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,7 +17,7 @@ STAGE_NAMES = {
 }
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_EXECUTION_PLAN = ROOT / "workflows/legal/document-onboarding.execution-plan.json"
+DEFAULT_WORKFLOW_AGENT = ROOT / "workflows/legal/document-onboarding.workflow-agent.md"
 OUTPUT_TYPES = {
     "outputs.documentsMetadata": ("documentsMetadata", "json"),
     "outputs.routingDecision": ("routingDecision", "json"),
@@ -46,19 +48,67 @@ def load(path):
     return json.loads(Path(path).read_text())
 
 
-def execution_stage_details(plan_file=DEFAULT_EXECUTION_PLAN):
-    plan = load(plan_file)
+def decode_agent_value(value):
+    value = value.replace("_", "=")
+    value += "=" * ((4 - len(value) % 4) % 4)
+    return base64.b64decode(value).decode("utf-8")
+
+
+def load_agent_tree(agent_file=DEFAULT_WORKFLOW_AGENT):
+    flat = []
+    lines = Path(agent_file).read_text().splitlines()
+    for index, line in enumerate(lines):
+        if "<!-- ao-node " not in line or index == 0:
+            continue
+        values = dict(part.split("=", 1) for part in line.strip()[len("<!-- ao-node "):-len(" -->")].split(" "))
+        previous = lines[index - 1]
+        depth = (len(previous) - len(previous.lstrip(" "))) // 2
+        flat.append({
+            "depth": depth,
+            "kind": values["kind"],
+            "id": decode_agent_value(values["id"]),
+            "name": decode_agent_value(values["name"]),
+            "detail": decode_agent_value(values["detail"]),
+            "children": [],
+        })
+    if not flat:
+        raise SystemExit(f"No workflow-agent nodes found in {agent_file}")
+    stack = []
+    root = None
+    for node in flat:
+        while stack and stack[-1]["depth"] >= node["depth"]:
+            stack.pop()
+        if stack:
+            stack[-1]["children"].append(node)
+        else:
+            root = node
+        stack.append(node)
+    return root
+
+
+def descendants(node):
+    for child in node["children"]:
+        yield child
+        yield from descendants(child)
+
+
+def execution_stage_details(agent_file=DEFAULT_WORKFLOW_AGENT):
+    root = load_agent_tree(agent_file)
     details = {}
-    for stage in plan["stages"]:
-        required_units = [unit for unit in stage["workUnits"] if not unit.get("optional")]
-        primary = required_units[-1] if required_units else stage["workUnits"][-1]
-        output_ref = next((item for item in reversed(primary.get("outputs", [])) if item.startswith("outputs.")), primary["outputs"][-1])
+    for stage in [child for child in root["children"] if child["kind"] == "phase"]:
+        units = [node for node in descendants(stage) if node["kind"] == "work_unit"]
+        primary = units[-1]
+        outputs = [node for node in primary["children"] if node["kind"] == "output"]
+        output_ref = next((node["name"] for node in reversed(outputs) if node["name"].startswith("outputs.")), outputs[-1]["name"])
         output_id, output_type = OUTPUT_TYPES.get(output_ref, (output_ref.split(".")[-1], "json"))
+        subphase = next((node for node in stage["children"] if node["kind"] == "subphase"), None)
+        graph_match = re.search(r"Graph: ([^.]+)", subphase["detail"] if subphase else "")
+        skill_match = re.search(r"Uses ([^ ]+)", primary["detail"])
         details[stage["id"]] = {
-            "graphId": stage["graphId"],
-            "subgraphId": stage.get("subgraphId"),
+            "graphId": graph_match.group(1) if graph_match else stage["name"],
+            "subgraphId": subphase["name"] if subphase else None,
             "workUnitId": primary["id"],
-            "skillId": primary["skillId"],
+            "skillId": skill_match.group(1).rstrip(".") if skill_match else "workflow-agent",
             "outputId": output_id,
             "outputType": output_type,
         }

@@ -17,7 +17,7 @@ struct LegalSourcePickerView: View {
                     Button {
                         appState.loadLegalClients()
                     } label: {
-                        Label("Ask Hermes", systemImage: "arrow.clockwise")
+                        Label("Ask Pi", systemImage: "arrow.clockwise")
                     }
                 }
 

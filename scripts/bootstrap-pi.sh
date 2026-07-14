@@ -88,9 +88,9 @@ if [[ ! -f "${PI_HOME_DIR}/agent/models.json" ]]; then
         "supportsReasoningEffort": false
       },
       "models": [
+        { "id": "qwen3.6:35b-mlx", "name": "Qwen 3.6 35B MLX", "reasoning": true, "input": ["text", "image"] },
+        { "id": "qwen3.6:27b-mlx", "name": "Qwen 3.6 27B MLX", "reasoning": true, "input": ["text", "image"] },
         { "id": "qwen3.6:latest", "name": "Qwen 3.6 Local", "reasoning": true, "input": ["text"] },
-        { "id": "qwen3.6:27b-mlx", "name": "Qwen 3.6 27B MLX", "reasoning": true, "input": ["text"] },
-        { "id": "qwen3.6:35b-mlx", "name": "Qwen 3.6 35B MLX", "reasoning": true, "input": ["text"] },
         { "id": "gemma4:e2b", "name": "Gemma 4 E2B Local", "reasoning": false, "input": ["text"] },
         { "id": "gemma4:e4b", "name": "Gemma 4 E4B Local", "reasoning": false, "input": ["text"] },
         { "id": "gemma4:e2b-mlx", "name": "Gemma 4 E2B MLX", "reasoning": false, "input": ["text"] },

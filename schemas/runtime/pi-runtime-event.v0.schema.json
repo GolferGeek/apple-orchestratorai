@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestratorai.local/schemas/runtime/pi-runtime-event.v0.schema.json",
+  "title": "Pi Runtime Event v0",
+  "type": "object",
+  "required": ["schemaVersion", "timestamp", "runtime", "runId", "piEventType", "workflowEventType", "raw"],
+  "properties": {
+    "schemaVersion": {
+      "const": "pi-runtime-event.v0"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "runtime": {
+      "const": "pi"
+    },
+    "runId": {
+      "type": "string"
+    },
+    "workflowId": {
+      "type": "string"
+    },
+    "stageId": {
+      "type": "string"
+    },
+    "graphId": {
+      "type": "string"
+    },
+    "subgraphId": {
+      "type": "string"
+    },
+    "workUnitId": {
+      "type": "string"
+    },
+    "skillId": {
+      "type": "string"
+    },
+    "teamId": {
+      "type": "string"
+    },
+    "roleId": {
+      "type": "string"
+    },
+    "sessionId": {
+      "type": "string"
+    },
+    "commandId": {
+      "type": "string"
+    },
+    "piEventType": {
+      "type": "string"
+    },
+    "workflowEventType": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "raw": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

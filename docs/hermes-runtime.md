@@ -146,7 +146,7 @@ That means the next runtime task is provider configuration for Hermes. The app/H
 Development setup can configure Hermes to use local Ollama through the OpenAI-compatible Ollama endpoint:
 
 ```bash
-./scripts/configure-hermes-ollama.sh qwen3.6:35b-a3b-nvfp4
+./scripts/configure-hermes-ollama.sh qwen3.6:35b-mlx
 ```
 
 This sets the repo-local Hermes config to:
@@ -154,7 +154,7 @@ This sets the repo-local Hermes config to:
 ```yaml
 model:
   provider: custom
-  default: qwen3.6:35b-a3b-nvfp4
+  default: qwen3.6:35b-mlx
   base_url: http://127.0.0.1:11435/v1
 ```
 
