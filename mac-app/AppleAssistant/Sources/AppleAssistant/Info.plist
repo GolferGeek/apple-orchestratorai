@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleIdentifier</key>
+  <string>com.golfergeek.apple-assistant.dev</string>
+  <key>CFBundleExecutable</key>
+  <string>AppleAssistant</string>
+  <key>CFBundleName</key>
+  <string>Apple Assistant</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>0.1.0</string>
+  <key>CFBundleVersion</key>
+  <string>1</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Apple Assistant uses the microphone so you can speak commands to your personal assistant.</string>
+  <key>NSSpeechRecognitionUsageDescription</key>
+  <string>Apple Assistant uses speech recognition to turn your spoken commands into local personal assistant actions.</string>
+  <key>NSCalendarsFullAccessUsageDescription</key>
+  <string>Apple Assistant uses Calendar access to answer scheduling questions and create events you request.</string>
+  <key>NSCalendarsUsageDescription</key>
+  <string>Apple Assistant uses Calendar access to answer scheduling questions and create events you request.</string>
+  <key>NSRemindersFullAccessUsageDescription</key>
+  <string>Apple Assistant uses Reminders access to answer reminder questions and create reminders you request.</string>
+  <key>NSRemindersUsageDescription</key>
+  <string>Apple Assistant uses Reminders access to answer reminder questions and create reminders you request.</string>
+</dict>
+</plist>

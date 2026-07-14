@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "workflow.launch.v0",
+  "kind": "workflow.launch",
+  "workflowId": "document-onboarding",
+  "profileId": "legal-dev",
+  "launchMode": "fixture",
+  "classification": "demo-or-public",
+  "modelPolicy": {
+    "defaultRoute": "local",
+    "sovereignty": "local-only",
+    "defaultLocalModel": "qwen3.6:35b-a3b-nvfp4",
+    "allowedRoutes": ["local"],
+    "fallbackBehavior": "fail-with-explanation"
+  },
+  "source": {
+    "resolver": "shared.local-file-resolve-documents.v0",
+    "client": {
+      "id": "client-acme-robotics",
+      "name": "Acme Robotics LLC"
+    },
+    "matter": {
+      "id": "matter-vendor-renewal-2026",
+      "name": "Vendor Agreement Renewal"
+    },
+    "documentIds": [],
+    "documentLabels": [
+      "engagement-letter.md",
+      "vendor-renewal-summary.md"
+    ],
+    "baseDirectory": "test-fixtures/legal/document-onboarding/acme-renewal",
+    "filePaths": [
+      "engagement-letter.md",
+      "vendor-renewal-summary.md"
+    ],
+    "sourceUris": [
+      "file://test-fixtures/legal/document-onboarding/acme-renewal/engagement-letter.md",
+      "file://test-fixtures/legal/document-onboarding/acme-renewal/vendor-renewal-summary.md"
+    ]
+  },
+  "outputContracts": [
+    {
+      "id": "response",
+      "type": "markdown",
+      "required": true
+    },
+    {
+      "id": "document-onboarding-report",
+      "type": "export_document",
+      "required": true
+    },
+    {
+      "id": "documentsMetadata",
+      "type": "json",
+      "required": true
+    },
+    {
+      "id": "routingDecision",
+      "type": "json",
+      "required": true
+    },
+    {
+      "id": "specialistOutputs",
+      "type": "json",
+      "required": true
+    },
+    {
+      "id": "synthesis",
+      "type": "json",
+      "required": true
+    },
+    {
+      "id": "reviewPayload",
+      "type": "json",
+      "required": true
+    }
+  ],
+  "instructions": [
+    "Resolve client, matter, and document references inside Hermes.",
+    "Do not let the frontend access source stores directly.",
+    "Emit workflow-event.v0 compatible progress events.",
+    "Pause for human review when the workflow asks for it.",
+    "Do not use external model providers for local-only workflows."
+  ]
+}

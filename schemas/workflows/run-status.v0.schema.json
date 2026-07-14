@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestratorai.local/schemas/workflows/run-status.v0.schema.json",
+  "title": "Hermes Run Status Response v0",
+  "type": "object",
+  "required": ["status"],
+  "properties": {
+    "run_id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": ["queued", "started", "running", "paused", "waiting_for_human", "completed", "failed", "cancelled", "stopped"]
+    },
+    "output": {
+      "type": ["string", "null"]
+    },
+    "error": {
+      "type": ["string", "null"]
+    }
+  },
+  "additionalProperties": true
+}

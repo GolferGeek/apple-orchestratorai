@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "legal.workflow.document-onboarding.recommend-next-workflow.v0",
+  "name": "Recommend Next Legal Workflow",
+  "namespace": "legal.workflow",
+  "status": "dev",
+  "summary": "Recommend optional follow-on workflows after document onboarding.",
+  "inputs": {
+    "synthesis": "legal.workflow.document-onboarding.synthesize-findings.v0.outputs.synthesis",
+    "routingDecision": "legal.shared.clo-route-specialists.v0.outputs.routingDecision"
+  },
+  "outputs": {
+    "nextWorkflowRecommendations": [
+      {
+        "workflowId": "string",
+        "label": "string",
+        "reason": "markdown",
+        "priority": "low|medium|high"
+      }
+    ]
+  },
+  "guardrails": [
+    "Recommendations are advisory and should not start another workflow without user approval.",
+    "Prefer workflows that can reuse the current run's output contracts."
+  ]
+}

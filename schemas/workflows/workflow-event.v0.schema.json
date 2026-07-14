@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestratorai.local/schemas/workflows/workflow-event.v0.schema.json",
+  "title": "Workflow Event v0",
+  "type": "object",
+  "required": ["timestamp", "type", "runId"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "type": {
+      "type": "string",
+      "description": "Normalized workflow event type such as workflow.started, stage.started, work_unit.completed, human_review.requested, or workflow.completed."
+    },
+    "runId": {
+      "type": "string"
+    },
+    "workflowId": {
+      "type": "string"
+    },
+    "stageId": {
+      "type": "string"
+    },
+    "graphId": {
+      "type": "string"
+    },
+    "subgraphId": {
+      "type": "string"
+    },
+    "workUnitId": {
+      "type": "string"
+    },
+    "skillId": {
+      "type": "string"
+    },
+    "reviewId": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "progress": {
+      "type": "object",
+      "required": ["current", "total", "unit"],
+      "properties": {
+        "current": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metrics": {
+      "type": "object"
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "uri": {
+            "type": ["string", "null"]
+          },
+          "title": {
+            "type": ["string", "null"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "raw": {
+      "type": "object"
+    },
+    "rawHermesRunId": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

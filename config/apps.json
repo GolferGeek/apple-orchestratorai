@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "0.1.0",
+  "apps": [
+    {
+      "id": "apple-orchestratorai",
+      "displayName": "Apple Orchestrator AI",
+      "type": "local-repo",
+      "root": ".",
+      "effortsRoot": "apps/apple-orchestratorai/efforts",
+      "defaultProfileId": "coder",
+      "status": "active"
+    }
+  ]
+}

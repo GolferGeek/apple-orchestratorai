@@ -8,7 +8,23 @@ The source definition is:
 workflows/legal/document-onboarding.workflow.json
 ```
 
+The current golden-path execution plan is:
+
+```text
+workflows/legal/document-onboarding.execution-plan.json
+```
+
 The intent is to model document onboarding as a workflow definition, not as code. Hermes should execute the workflow by resolving the requested skills, persisting run observability, and returning schema-shaped outputs that the Mac app can display.
+
+## Launch Payload
+
+The reference launch payload is:
+
+```text
+test-fixtures/legal/document-onboarding/acme-renewal/launch-payload.json
+```
+
+The Mac app sends the same logical shape to Hermes when document onboarding starts. Hermes should treat this as the workflow source of truth and resolve all client, matter, and document references through skills or MCPs.
 
 ## Input Model
 

@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "profile.coder.efforts.v0",
+  "title": "Coder Efforts Profile Surface",
+  "type": "object",
+  "required": ["schemaVersion", "profileId", "surfaceId", "appId", "generatedAt", "sections"],
+  "properties": {
+    "schemaVersion": { "const": "0.1.0" },
+    "profileId": { "const": "coder" },
+    "surfaceId": { "const": "efforts" },
+    "appId": { "type": "string", "minLength": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "sections": {
+      "type": "object",
+      "required": ["inbox", "current", "future", "archive"],
+      "properties": {
+        "inbox": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/inboxItem" }
+        },
+        "current": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/effortItem" }
+        },
+        "future": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/effortItem" }
+        },
+        "archive": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/effortItem" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "turn": {
+      "type": "object",
+      "required": ["owner", "state", "reason"],
+      "properties": {
+        "owner": {
+          "enum": ["user", "hermes", "codex", "pi", "app", "external"]
+        },
+        "state": {
+          "enum": ["needs-input", "ready", "working", "blocked", "review", "done"]
+        },
+        "reason": { "type": "string" },
+        "since": { "type": "string" },
+        "questionIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "inboxItem": {
+      "type": "object",
+      "required": ["id", "title", "path", "updatedAt"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "summary": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "effortItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "status",
+        "path",
+        "profileId",
+        "turn",
+        "questionCount",
+        "hasBlockingQuestions",
+        "artifactCount",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["current", "future", "archive"] },
+        "path": { "type": "string", "minLength": 1 },
+        "profileId": { "type": "string", "minLength": 1 },
+        "turn": { "$ref": "#/$defs/turn" },
+        "questionCount": { "type": "integer", "minimum": 0 },
+        "hasBlockingQuestions": { "type": "boolean" },
+        "resultSummary": { "type": "string" },
+        "artifactCount": { "type": "integer", "minimum": 0 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

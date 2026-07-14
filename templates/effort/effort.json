@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "replace-with-effort-id",
+  "appId": "replace-with-app-id",
+  "profileId": "coder",
+  "status": "current",
+  "sourceIntention": "../../inbox/replace-with-intention-file.md",
+  "createdBy": "coder",
+  "createdAt": "1970-01-01T00:00:00Z",
+  "inferenceRoute": "codex-subscription",
+  "turn": {
+    "owner": "codex",
+    "state": "ready",
+    "reason": "Effort has been accepted and is ready for Codex planning.",
+    "since": "1970-01-01T00:00:00Z",
+    "questionIds": []
+  }
+}

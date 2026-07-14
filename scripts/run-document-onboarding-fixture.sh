@@ -18,28 +18,47 @@ import sys
 workflow_path, fixture_path = sys.argv[1:3]
 workflow = json.load(open(workflow_path))
 fixture = json.load(open(fixture_path))
+workflow_summary = {
+    "id": workflow["id"],
+    "name": workflow["name"],
+    "stages": workflow["runtime"]["observability"]["presentationStages"],
+    "defaultLocalModel": workflow["modelPolicy"]["defaultLocalModel"],
+}
+fixture_summary = {
+    "workflowId": fixture["workflowId"],
+    "profileId": fixture["profileId"],
+    "classification": fixture["classification"],
+    "client": fixture["client"],
+    "matter": fixture["matter"],
+    "fileSystemDocuments": fixture["fileSystemDocuments"],
+    "reviewInstructions": fixture["reviewInstructions"],
+}
 
 print(
-    "Run the Apple Orchestrator AI legal document onboarding workflow in local-only demo mode.\n"
-    "Use the workflow definition and fixture below. Return ONLY valid compact JSON. "
-    "Do not include markdown fences, commentary, planning text, or tool-call prose. "
-    "Keep every summary string under 240 characters. Keep markdownSummary under 900 characters. "
-    "Each output content must be under 900 characters. "
-    "The JSON object must have exactly this display envelope shape:\n"
+    "Produce a UI display envelope for one local-only legal document onboarding demo run.\n"
+    "Return ONLY one-line valid JSON. No markdown fences. No commentary. No trailing text. "
+    "Use only facts from the fixture. The client is Acme Robotics LLC and the vendor is Northwind Supply Inc. "
+    "Do not introduce Acme Corp, Beta LLC, Delaware law, or a $50K fee unless those facts appear in the fixture. "
+    "Keep every stage summary under 80 characters. Keep markdownSummary under 300 characters. "
+    "The outputs array must contain exactly one item. Its content must be plain text under 180 characters. "
+    "Do not put JSON, braces, brackets, or escaped quotes inside any string value. "
+    "Every outputs item must have type \"markdown\" and its content must be a simple string, not an object or array. "
+    "Use exactly these six stage ids in order: metadata, classify, specialists, synthesis, hitl_review, report. "
+    "The JSON object must have this shape:\n"
     "{"
-    "\"status\":\"completed|needs_human_review|failed\","
+    "\"status\":\"completed\","
     "\"workflowId\":\"string\","
     "\"client\":{\"id\":\"string\",\"name\":\"string\"},"
     "\"matter\":{\"id\":\"string\",\"name\":\"string\"},"
-    "\"stages\":[{\"id\":\"string\",\"name\":\"string\",\"status\":\"completed|needs_human_review|failed\",\"summary\":\"string\"}],"
+    "\"stages\":[{\"id\":\"string\",\"name\":\"string\",\"status\":\"completed\",\"summary\":\"string\"}],"
     "\"humanReviewRequired\":false,"
     "\"markdownSummary\":\"string\","
-    "\"outputs\":[{\"type\":\"markdown|json|file\",\"title\":\"string\",\"content\":\"string\"}]"
+    "\"outputs\":[{\"type\":\"markdown\",\"title\":\"Document Onboarding Complete\",\"content\":\"Completed local demo run for Acme Robotics LLC.\"}]"
     "}\n\n"
-    "Workflow definition:\n"
-    + json.dumps(workflow, indent=2)
-    + "\n\nFixture:\n"
-    + json.dumps(fixture, indent=2)
+    "Workflow summary:\n"
+    + json.dumps(workflow_summary, separators=(",", ":"))
+    + "\n\nFixture summary:\n"
+    + json.dumps(fixture_summary, separators=(",", ":"))
 )
 PY
 )"

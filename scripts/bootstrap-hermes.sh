@@ -22,7 +22,6 @@ if ! command -v uv >/dev/null 2>&1; then
   echo "Install uv from https://docs.astral.sh/uv/ or run: curl -LsSf https://astral.sh/uv/install.sh | sh" >&2
   exit 1
 fi
-
 UV_BIN="$(command -v uv)"
 
 mkdir -p "${RUNTIME_DIR}" "${HERMES_HOME_DIR}" "$(dirname "${HERMES_VENV_DIR}")"
@@ -70,5 +69,5 @@ echo
 echo "Hermes bootstrap complete."
 echo "Source env: source ${RUNTIME_DIR}/hermes-env.sh"
 echo "Check CLI:  HERMES_HOME=${HERMES_HOME_DIR} ${HERMES_VENV_DIR}/bin/hermes --help"
-echo "Start API:  scripts/start-hermes-api.sh"
+echo "Start API:  source ${RUNTIME_DIR}/hermes-env.sh && hermes gateway"
 echo "Probe API:  scripts/probe-hermes-api.sh"

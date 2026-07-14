@@ -55,9 +55,39 @@ Recommended workflow-level modes:
 - `local-only`: only local Ollama may receive workflow content.
 - `local-first`: use local Ollama by default; ask before cloud fallback.
 - `cloud-allowed`: cloud routes are allowed if credentials exist and the data classification permits them.
-- `cloud-preferred`: cloud routes may be preferred for non-confidential workflows when the user or organization configures them.
+- `cloud-required`: the workflow knowingly requires a cloud/frontier route and must not run without configured credentials and consent.
 
 Legal client-confidential workflows should default to `local-only` or `local-first` with strict classification rules. Demo, public, writing, coding, and profile-authoring workflows can allow Codex, Google, Claude, or Ollama Cloud when explicitly configured.
+
+Each workflow defines its own acceptable route level. Sovereignty is not an app-wide boolean. A workflow becomes sovereign by declaring:
+
+```json
+{
+  "modelPolicy": {
+    "sovereignty": "local-only",
+    "allowedRoutes": ["local"],
+    "fallbackBehavior": "fail-with-explanation"
+  }
+}
+```
+
+When a workflow is `local-only`, Hermes must not ask the app for cloud credentials, must not silently fall back to cloud, and must not route content to provider APIs. The only acceptable outcomes are:
+
+- run locally
+- ask the user to install/select a local model
+- fail with a clear explanation
+
+## Cloud Route Consent
+
+Cloud routes should show a visible trust and provider-cost change before use:
+
+```json
+{
+  "route": "claude-subscription",
+  "requiresConsent": true,
+  "reason": "The selected workflow allows cloud fallback, but this matter is not marked client-confidential."
+}
+```
 
 ## Runtime Selection
 
@@ -86,3 +116,17 @@ Before launch, the app should check:
 - Whether the workflow's data classification permits cloud use.
 
 If a workflow is local-only and the Mac cannot run the required model, the app should fail with a clear explanation instead of silently using a cloud provider.
+
+## User-Facing Failure Language
+
+If a local-only workflow cannot run locally:
+
+```text
+This workflow is local-only. The selected Mac does not currently have the required local model or capability. Install the required model, choose a smaller local model, or change workflow policy before using a cloud route.
+```
+
+If a local-first workflow wants to escalate:
+
+```text
+Hermes can continue locally, but a cloud route may be faster or stronger. This may use metered provider inference and may send workflow content outside this Mac. Continue with cloud?
+```

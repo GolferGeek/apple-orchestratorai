@@ -1,0 +1,85 @@
+{
+  "id": "run-document-onboarding-acme-renewal-001",
+  "workflowId": "document-onboarding",
+  "workflowName": "Document Onboarding",
+  "status": "completed",
+  "profileId": "legal-dev",
+  "startedAt": "2026-07-08T12:46:18Z",
+  "completedAt": "2026-07-08T12:46:27Z",
+  "client": {
+    "id": "client-acme-robotics",
+    "name": "Acme Robotics LLC"
+  },
+  "matter": {
+    "id": "matter-vendor-renewal-2026",
+    "name": "Vendor Agreement Renewal"
+  },
+  "stages": [
+    {
+      "id": "metadata",
+      "name": "Metadata Extraction",
+      "status": "completed",
+      "summary": "Resolved client, matter, and selected local fixture documents."
+    },
+    {
+      "id": "classify",
+      "name": "Classification",
+      "status": "completed",
+      "summary": "Classified the packet as a demo commercial contract matter."
+    },
+    {
+      "id": "specialists",
+      "name": "Specialists",
+      "status": "completed",
+      "summary": "Prepared contract, privacy, compliance, and litigation review lanes."
+    },
+    {
+      "id": "synthesis",
+      "name": "Synthesis",
+      "status": "completed",
+      "summary": "Synthesized vendor renewal findings for attorney review."
+    },
+    {
+      "id": "hitl_review",
+      "name": "Human Review",
+      "status": "completed",
+      "summary": "Approved in local demo mode."
+    },
+    {
+      "id": "report",
+      "name": "Report",
+      "status": "completed",
+      "summary": "Generated a generic display output envelope."
+    }
+  ],
+  "humanReview": {
+    "id": "human-review-acme-renewal-001",
+    "status": "approved",
+    "title": "Attorney Review",
+    "summary": "Approve or request changes to the synthesized onboarding findings.",
+    "segments": [
+      {
+        "id": "contract",
+        "label": "Contract Findings",
+        "status": "approved",
+        "decision": "approve",
+        "summary": "Vendor renewal terms are ready for follow-up review."
+      },
+      {
+        "id": "privacy",
+        "label": "Privacy Findings",
+        "status": "approved",
+        "decision": "approve",
+        "summary": "Data-handling terms should be tightened in the next workflow."
+      }
+    ]
+  },
+  "outputs": [
+    {
+      "id": "output-summary",
+      "type": "markdown",
+      "title": "Document Onboarding Complete",
+      "content": "Completed local demo run for Acme Robotics LLC. The workflow resolved files, classified the matter, routed specialist lanes, captured HITL review, and produced a generic output envelope."
+    }
+  ]
+}

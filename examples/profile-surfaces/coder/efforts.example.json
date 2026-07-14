@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "0.1.0",
+  "profileId": "coder",
+  "surfaceId": "efforts",
+  "appId": "apple-orchestratorai",
+  "generatedAt": "2026-07-07T00:00:00Z",
+  "sections": {
+    "inbox": [
+      {
+        "id": "0001-build-effort-system",
+        "title": "Build The Effort System",
+        "path": "apps/apple-orchestratorai/efforts/inbox/0001-build-effort-system.md",
+        "updatedAt": "2026-07-07T00:00:00Z",
+        "summary": "Create the first concrete app effort structure for Apple Orchestrator AI."
+      }
+    ],
+    "current": [],
+    "future": [],
+    "archive": []
+  }
+}

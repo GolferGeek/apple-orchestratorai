@@ -26,6 +26,7 @@
     {
       "id": "metadata",
       "skills": [
+        "legal.shared.list-legal-source-options.v0",
         "legal.shared.apple-store-resolve-client-matter.v0",
         "shared.local-file-resolve-documents.v0",
         "shared.text-extract.v0",

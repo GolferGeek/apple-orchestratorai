@@ -1,7 +1,9 @@
-.build/
 .runtime/
-dist/
-build/
-*.xcodeproj/xcuserdata/
-*.xcworkspace/xcuserdata/
+config/hermes-profiles.local/
+.env
+.env.*
+!.env.example
+*.log
 .DS_Store
+.build/
+mac-app/**/.build/

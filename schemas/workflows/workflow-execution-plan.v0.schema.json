@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestratorai.local/schemas/workflows/workflow-execution-plan.v0.schema.json",
+  "title": "Workflow Execution Plan v0",
+  "type": "object",
+  "required": ["schemaVersion", "kind", "workflowId", "profileId", "mode", "stages"],
+  "properties": {
+    "schemaVersion": {
+      "const": "workflow.execution-plan.v0"
+    },
+    "kind": {
+      "const": "workflow.execution-plan"
+    },
+    "workflowId": {
+      "type": "string"
+    },
+    "profileId": {
+      "type": "string"
+    },
+    "mode": {
+      "enum": ["golden-path", "runtime-derived"]
+    },
+    "sourceWorkflow": {
+      "type": "string"
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "graphId", "execution", "workUnits"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "graphId": { "type": "string" },
+          "subgraphId": { "type": "string" },
+          "execution": {
+            "enum": ["sequential", "fanout", "human-gated"]
+          },
+          "workUnits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "name", "skillId", "inputs", "outputs"],
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" },
+                "skillId": { "type": "string" },
+                "inputs": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "outputs": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "optional": { "type": "boolean" },
+                "emits": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "humanCheckpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "stageId", "reviewMode", "allowedDecisions"],
+        "properties": {
+          "id": { "type": "string" },
+          "stageId": { "type": "string" },
+          "reviewMode": { "enum": ["whole-package", "segmented"] },
+          "allowedDecisions": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "hermes.skill-contract.v0",
+  "id": "workflow.request-human-review.v0",
+  "name": "Request Human Review",
+  "namespace": "workflow",
+  "status": "dev",
+  "summary": "Create a generic human review package and pause the workflow until the app returns a decision.",
+  "inputs": {
+    "reviewSubject": "object",
+    "segments": "object[]?",
+    "allowedDecisions": "string[]"
+  },
+  "outputs": {
+    "reviewPayload": "schemas/workflows/human-review.v0.schema.json",
+    "decision": "approve|request_changes|reject"
+  },
+  "events": [
+    "human_review.requested",
+    "approval.request",
+    "approval.responded",
+    "human_review.completed"
+  ],
+  "guardrails": [
+    "Do not finalize workflow outputs before required human review is resolved.",
+    "Segment decisions must preserve segment ids from the review request."
+  ]
+}
